@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .step { display: flex; flex-direction: column; justify-content: flex-end; padding: 8px 6px; min-height: 86px; border-radius: 6px; font-family: var(--font-mono); font-size: 9px; }
+  .step .num { font-family: var(--font-sans); font-size: 11px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="grid" id="g"></div>
+</div>
+<script>
+const steps = [
+  ['50','#f6f8fc'],['100','#eef1f7'],['200','#dee2ee'],['300','#c0c6dc'],
+  ['400','#98a0bc'],['500','#6b7599'],['600','#4a5378'],['700','#2d3556'],
+  ['800','#1e2540'],['900','#14192b'],['950','#0a0d1a'],['000','#000000']
+];
+const el = document.getElementById('g');
+steps.slice(0, 8).forEach(([n, hex]) => {
+  const light = parseInt(n) <= 300;
+  el.innerHTML += `<div class="step" style="background:${hex}; color:${light ? '#14192b' : '#fff'}"><span class="num">${n}</span><span>${hex}</span></div>`;
+});
+</script>
+</body>
+</html>

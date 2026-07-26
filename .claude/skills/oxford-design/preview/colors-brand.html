@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .row { display: flex; gap: 10px; align-items: stretch; }
+  .swatch { flex: 1; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 88px; font-family: var(--font-sans); }
+  .swatch .name { font-weight: 600; font-size: 13px; }
+  .swatch .hex { font-family: var(--font-mono); font-size: 11px; opacity: 0.85; }
+  .swatch .role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.7; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="row">
+    <div class="swatch" style="background: var(--oxford-blue); color: #fff;">
+      <div><div class="role">Principal</div><div class="name">Oxford Blue</div></div>
+      <div class="hex">#263fa3</div>
+    </div>
+    <div class="swatch" style="background: var(--oxford-white); color: var(--fg-1); border: 1px solid var(--border-1);">
+      <div><div class="role">Secundária</div><div class="name">White</div></div>
+      <div class="hex">#ffffff</div>
+    </div>
+    <div class="swatch" style="background: var(--oxford-terracotta); color: #fff;">
+      <div><div class="role">Detalhes</div><div class="name">Terracotta</div></div>
+      <div class="hex">#d97757</div>
+    </div>
+    <div class="swatch" style="background: var(--oxford-cream); color: var(--fg-1); border: 1px solid var(--border-1);">
+      <div><div class="role">Suporte</div><div class="name">Cream</div></div>
+      <div class="hex">#f7f4ee</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

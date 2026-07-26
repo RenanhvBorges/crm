@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .badge { font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <span class="badge" style="background: var(--oxford-blue); color: #fff"><span class="dot" style="background:#fff"></span>Em andamento</span>
+  <span class="badge" style="background: #e3f5eb; color: #1f8f5a"><span class="dot" style="background:#1f8f5a"></span>Aprovado</span>
+  <span class="badge" style="background: #fbf1d9; color: #b87a15"><span class="dot" style="background:#b87a15"></span>Aguardando</span>
+  <span class="badge" style="background: #fbe4e2; color: #b1342c"><span class="dot" style="background:#b1342c"></span>Urgente</span>
+  <span class="badge" style="background: var(--oxford-terracotta-100); color: var(--oxford-terracotta-700)">Novo</span>
+  <span class="badge" style="background: var(--ink-100); color: var(--fg-2)">Rascunho</span>
+  <span class="badge" style="background: transparent; color: var(--oxford-blue); border: 1px solid var(--oxford-blue)">Case</span>
+</div>
+</body>
+</html>

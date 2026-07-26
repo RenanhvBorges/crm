@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 14px; align-items: stretch; }
+  .tile { border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; padding: 18px 20px; min-height: 140px; }
+  .tile .label { font-family: var(--font-mono); font-size: 10px; opacity: 0.7; letter-spacing: 0.1em; }
+  .t-blue { background: var(--oxford-blue); color: #fff; }
+  .t-white { background: #fff; color: var(--fg-2); border: 1px solid var(--border-1); }
+  .t-cream { background: var(--oxford-cream); color: var(--fg-2); }
+  .mark-lg { width: 86px; height: 86px; }
+  .mark-md { width: 56px; height: 56px; }
+  .name { font-family: var(--font-display); font-size: 22px; color: inherit; letter-spacing: 0.02em; }
+  .sub { font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.7; margin-top: 2px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="tile t-blue">
+    <img class="mark-lg" src="../assets/logo-oxford-mark-v2-white.png" alt="Oxford mark">
+    <div style="display:flex; justify-content: space-between; align-items: flex-end;">
+      <div><div class="name" style="color:#fff">Oxford</div><div class="sub" style="color:rgba(255,255,255,0.7)">Soluções Digitais</div></div>
+      <span class="label" style="color: rgba(255,255,255,0.7)">ON BLUE</span>
+    </div>
+  </div>
+  <div class="tile t-white">
+    <img class="mark-md" src="../assets/logo-oxford-mark-v2-on-blue.png" alt="Oxford mark">
+    <span class="label">MARK · PRIMARY</span>
+  </div>
+  <div class="tile t-cream">
+    <img class="mark-md" src="../assets/logo-oxford-mark-v2-on-blue.png" alt="Oxford mark" style="border-radius: 999px;">
+    <span class="label">AVATAR · CIRCULAR</span>
+  </div>
+</div>
+</body>
+</html>

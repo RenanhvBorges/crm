@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn { font-family: var(--font-sans); font-weight: 600; font-size: 15px; border: none; cursor: pointer; padding: 12px 20px; border-radius: 8px; transition: all 200ms var(--ease-out); display: inline-flex; align-items: center; gap: 8px; }
+  .btn-primary { background: var(--oxford-blue); color: #fff; box-shadow: var(--shadow-brand); }
+  .btn-primary:hover { background: var(--oxford-blue-600); }
+  .btn-accent { background: var(--oxford-terracotta); color: #fff; }
+  .btn-accent:hover { background: var(--oxford-terracotta-600); }
+  .btn-ghost { background: transparent; color: var(--oxford-blue); border: 1.5px solid var(--oxford-blue); }
+  .btn-ghost:hover { background: var(--oxford-blue-50); }
+  .btn-link { background: transparent; color: var(--oxford-blue); padding: 12px 4px; }
+  .btn-link:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+  .btn-pill { border-radius: 999px; padding: 14px 28px; background: var(--oxford-terracotta); color: #fff; }
+</style>
+</head>
+<body>
+<div class="card">
+  <button class="btn btn-primary">Agendar diagnóstico →</button>
+  <button class="btn btn-accent">Ver o case</button>
+  <button class="btn btn-ghost">Saber mais</button>
+  <button class="btn btn-link">Ler no blog →</button>
+  <button class="btn btn-pill">Falar com a Oxford</button>
+</div>
+</body>
+</html>

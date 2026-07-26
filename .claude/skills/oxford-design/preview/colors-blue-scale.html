@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; }
+  .scale { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+  .step { display: flex; flex-direction: column; justify-content: flex-end; padding: 8px 6px; min-height: 88px; border-radius: 6px; font-family: var(--font-mono); font-size: 9px; }
+  .step .num { font-family: var(--font-sans); font-size: 11px; font-weight: 600; opacity: 0.9; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scale" id="s"></div>
+</div>
+<script>
+const scale = [
+  ['50','#f2f4fb'],['100','#e0e5f4'],['300','#8093d0'],['400','#4f66b8'],
+  ['500','#263fa3'],['600','#1f3589'],['700','#182a6e'],['800','#121f53'],
+  ['900','#0b1538'],['950','#070e26']
+];
+const el = document.getElementById('s');
+scale.forEach(([n, hex]) => {
+  const step = parseInt(n);
+  const light = step >= 300;
+  el.innerHTML += `<div class="step" style="background:${hex}; color:${light ? '#14192b' : '#fff'}"><span class="num">${n}</span><span>${hex}</span></div>`;
+});
+</script>
+</body>
+</html>

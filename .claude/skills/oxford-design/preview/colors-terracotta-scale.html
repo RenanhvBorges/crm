@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; }
+  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .step { display: flex; flex-direction: column; justify-content: flex-end; padding: 10px 10px; min-height: 96px; border-radius: 8px; font-family: var(--font-mono); font-size: 10px; }
+  .step .num { font-family: var(--font-sans); font-size: 12px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="scale">
+    <div class="step" style="background:#fbe7de; color:#14192b"><span class="num">100</span><span>#fbe7de</span></div>
+    <div class="step" style="background:#ecab94; color:#14192b"><span class="num">300</span><span>#ecab94</span></div>
+    <div class="step" style="background:#d97757; color:#fff"><span class="num">500</span><span>#d97757</span></div>
+    <div class="step" style="background:#c46441; color:#fff"><span class="num">600</span><span>#c46441</span></div>
+    <div class="step" style="background:#a6532f; color:#fff"><span class="num">700</span><span>#a6532f</span></div>
+  </div>
+</div>
+</body>
+</html>

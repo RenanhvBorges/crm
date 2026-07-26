@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Oxford — Marketing Site</title>
+<meta name="viewport" content="width=1280">
+<style>
+/* =============================================================
+   Oxford Soluções Digitais — Colors & Type
+   ============================================================= */
+
+/* ---- FONT LOADING -------------------------------------------- */
+/* Webfonts via Google Fonts (see fonts/FONTS.md for substitution notes) */
+@import url('https://fonts.googleapis.com/css2?family=Prata&family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  /* =========================================================
+     COLORS — Brand
+     =========================================================
+     Brand tokens pulled straight from the spec:
+       principal:  #263fa3  (Oxford blue)
+       secundária: #ffffff  (pure white)
+       detalhes:   #d97757  (warm terracotta accent)
+     ========================================================= */
+
+  --oxford-blue:        #263fa3;
+  --oxford-blue-600:    #1f3589;   /* hover/darker */
+  --oxford-blue-700:    #182a6e;   /* pressed/darker */
+  --oxford-blue-800:    #121f53;   /* deep surface */
+  --oxford-blue-900:    #0b1538;   /* near-black-blue */
+  --oxford-blue-400:    #4f66b8;   /* tint */
+  --oxford-blue-300:    #8093d0;   /* soft tint */
+  --oxford-blue-100:    #e0e5f4;   /* wash */
+  --oxford-blue-50:     #f2f4fb;   /* lightest wash */
+
+  --oxford-white:       #ffffff;
+  --oxford-cream:       #f7f4ee;   /* subtly warm paper */
+  --oxford-paper:       #faf9f5;   /* off-white page */
+
+  --oxford-terracotta:      #d97757;   /* accent — CTAs, highlights, numbers */
+  --oxford-terracotta-600:  #c46441;   /* hover */
+  --oxford-terracotta-700:  #a6532f;   /* pressed */
+  --oxford-terracotta-300:  #ecab94;   /* tint */
+  --oxford-terracotta-100:  #fbe7de;   /* wash */
+
+  /* Neutrals (cool, paired with blue) */
+  --ink-0:   #000000;
+  --ink-950: #0a0d1a;
+  --ink-900: #14192b;
+  --ink-800: #1e2540;
+  --ink-700: #2d3556;
+  --ink-600: #4a5378;
+  --ink-500: #6b7599;
+  --ink-400: #98a0bc;
+  --ink-300: #c0c6dc;
+  --ink-200: #dee2ee;
+  --ink-100: #eef1f7;
+  --ink-50:  #f6f8fc;
+
+  /* Semantic status */
+  --success:     #1f8f5a;
+  --success-bg:  #e3f5eb;
+  --warning:     #b87a15;
+  --warning-bg:  #fbf1d9;
+  --danger:      #b1342c;
+  --danger-bg:   #fbe4e2;
+  --info:        var(--oxford-blue);
+  --info-bg:     var(--oxford-blue-100);
+
+  /* =========================================================
+     SEMANTIC TOKENS (use these in components, not raw palette)
+     ========================================================= */
+
+  /* Foreground */
+  --fg-1:        var(--ink-950);           /* primary text */
+  --fg-2:        var(--ink-700);           /* secondary text */
+  --fg-3:        var(--ink-500);           /* tertiary, captions */
+  --fg-muted:    var(--ink-400);           /* disabled / placeholders */
+  --fg-on-blue:  var(--oxford-white);      /* text on Oxford blue */
+  --fg-on-accent:var(--oxford-white);      /* text on terracotta */
+  --fg-accent:   var(--oxford-terracotta); /* accent inline text */
+  --fg-brand:    var(--oxford-blue);       /* brand inline text */
+
+  /* Background / surface */
+  --bg-page:        var(--oxford-white);
+  --bg-page-warm:   var(--oxford-cream);   /* optional warm page */
+  --bg-surface:     var(--oxford-white);
+  --bg-surface-2:   var(--ink-50);         /* subtle section bg */
+  --bg-surface-3:   var(--ink-100);
+  --bg-brand:       var(--oxford-blue);
+  --bg-brand-deep:  var(--oxford-blue-900);
+  --bg-accent:      var(--oxford-terracotta);
+  --bg-accent-soft: var(--oxford-terracotta-100);
+
+  /* Borders */
+  --border-1:    var(--ink-200);
+  --border-2:    var(--ink-300);
+  --border-strong: var(--ink-700);
+  --border-brand: var(--oxford-blue);
+
+  /* =========================================================
+     TYPOGRAPHY
+     ========================================================= */
+
+  --font-display: 'Prata', 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+  --font-serif:   'Cormorant Garamond', 'Prata', Georgia, serif;
+  --font-sans:    'Manrope', 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+  --font-mono:    ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Fluid type scale — anchored at 1rem = 16px */
+  --text-2xs:  0.6875rem;  /* 11 */
+  --text-xs:   0.75rem;    /* 12 */
+  --text-sm:   0.875rem;   /* 14 */
+  --text-base: 1rem;       /* 16 */
+  --text-md:   1.125rem;   /* 18 */
+  --text-lg:   1.25rem;    /* 20 */
+  --text-xl:   1.5rem;     /* 24 */
+  --text-2xl:  1.875rem;   /* 30 */
+  --text-3xl:  2.25rem;    /* 36 */
+  --text-4xl:  3rem;       /* 48 */
+  --text-5xl:  3.75rem;    /* 60 */
+  --text-6xl:  4.75rem;    /* 76 */
+  --text-7xl:  6rem;       /* 96 */
+
+  /* Tracking (letter-spacing) */
+  --tracking-tight:  -0.02em;
+  --tracking-snug:   -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;
+  --tracking-wider:  0.12em;   /* small-caps brand accent ("SOLUÇÕES DIGITAIS") */
+  --tracking-caps:   0.22em;   /* decorative uppercase */
+
+  /* Leading */
+  --leading-tight:  1.05;
+  --leading-snug:   1.2;
+  --leading-normal: 1.5;
+  --leading-loose:  1.7;
+
+  /* =========================================================
+     RADII / SHADOW / SPACING / MOTION
+     ========================================================= */
+
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius:    8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(20, 25, 43, 0.05);
+  --shadow-sm: 0 2px 4px rgba(20, 25, 43, 0.06), 0 1px 2px rgba(20, 25, 43, 0.04);
+  --shadow:    0 6px 16px -4px rgba(20, 25, 43, 0.10), 0 2px 4px rgba(20, 25, 43, 0.04);
+  --shadow-md: 0 14px 32px -8px rgba(20, 25, 43, 0.14), 0 4px 8px rgba(20, 25, 43, 0.05);
+  --shadow-lg: 0 28px 60px -16px rgba(20, 25, 43, 0.22), 0 8px 16px rgba(20, 25, 43, 0.06);
+  --shadow-brand: 0 18px 40px -14px rgba(38, 63, 163, 0.45);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  --ease-out:     cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out:  cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:     120ms;
+  --dur:          200ms;
+  --dur-slow:     320ms;
+}
+
+/* =============================================================
+   SEMANTIC ELEMENT STYLES
+   Use these defaults, override locally when needed.
+   ============================================================= */
+
+html, body {
+  font-family: var(--font-sans);
+  color: var(--fg-1);
+  background: var(--bg-page);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-6xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-1);
+  text-wrap: balance;
+  margin: 0 0 var(--space-5);
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+  text-wrap: balance;
+  margin: 0 0 var(--space-4);
+}
+
+h3, .h3 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-snug);
+  color: var(--fg-1);
+  margin: 0 0 var(--space-3);
+}
+
+h4, .h4 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+  color: var(--fg-1);
+  margin: 0 0 var(--space-2);
+}
+
+/* Brand eyebrow — matches "SOLUÇÕES DIGITAIS" treatment under the wordmark */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  color: var(--fg-3);
+}
+.eyebrow--accent { color: var(--fg-accent); }
+.eyebrow--on-blue { color: rgba(255,255,255,0.72); }
+
+p, .body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--fg-2);
+  margin: 0 0 var(--space-4);
+  text-wrap: pretty;
+}
+
+.lead {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+
+.caption, small {
+  font-size: var(--text-sm);
+  color: var(--fg-3);
+}
+
+code, kbd, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+/* Display serif blocks — hero numbers, big pull-quotes */
+.display-serif {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-7xl);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+}
+
+/* Pull quote styling (used in case studies) */
+.pullquote {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-style: italic;
+  font-size: var(--text-3xl);
+  line-height: 1.25;
+  color: var(--fg-1);
+}
+
+/* Number callout — terracotta, serif, for results ("R$ 1,2M", "90 dias") */
+.stat {
+  font-family: var(--font-display);
+  color: var(--fg-accent);
+  font-size: var(--text-6xl);
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+</style>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+  /* Nav */
+  .nav { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border-1); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .nav-logo { display: flex; align-items: center; gap: 12px; }
+  .nav-logo img { height: 32px; }
+  .nav-logo .word { font-family: var(--font-display); font-size: 22px; color: var(--oxford-blue); letter-spacing: 0.02em; }
+  .nav-logo .sub { font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); margin-top: 2px; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { font-family: var(--font-sans); font-size: 14px; font-weight: 500; color: var(--fg-2); text-decoration: none; }
+  .nav-links a:hover { color: var(--oxford-blue); }
+  .btn { font-family: var(--font-sans); font-weight: 600; font-size: 14px; border: none; cursor: pointer; padding: 11px 20px; border-radius: 8px; transition: all 180ms var(--ease-out); display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .btn-primary { background: var(--oxford-blue); color: #fff; }
+  .btn-primary:hover { background: var(--oxford-blue-600); }
+  .btn-accent { background: var(--oxford-terracotta); color: #fff; box-shadow: 0 10px 24px -10px rgba(217,119,87,0.6); }
+  .btn-accent:hover { background: var(--oxford-terracotta-600); }
+  .btn-ghost { background: transparent; color: var(--oxford-blue); border: 1.5px solid var(--oxford-blue); }
+  .btn-ghost:hover { background: var(--oxford-blue-50); }
+
+  /* Hero */
+  .hero { background: var(--oxford-blue); color: #fff; padding: 96px 0 120px; position: relative; overflow: hidden; }
+  .hero::after { content: ""; position: absolute; right: -180px; bottom: -240px; width: 520px; height: 520px; border-radius: 999px; background: radial-gradient(circle at center, rgba(217,119,87,0.22), transparent 70%); pointer-events: none; }
+  .hero .eyebrow { color: var(--oxford-terracotta-300); margin-bottom: 20px; }
+  .hero h1 { font-family: var(--font-display); font-size: 76px; font-weight: 400; line-height: 1.02; letter-spacing: -0.02em; color: #fff; max-width: 920px; margin: 0 0 24px; text-wrap: balance; }
+  .hero h1 em { font-style: italic; color: var(--oxford-terracotta); }
+  .hero p { font-size: 19px; line-height: 1.55; color: rgba(255,255,255,0.8); max-width: 640px; margin: 0 0 36px; }
+  .hero-ctas { display: flex; gap: 14px; align-items: center; }
+  .hero-meta { margin-top: 56px; display: flex; gap: 48px; color: rgba(255,255,255,0.7); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-meta strong { color: #fff; font-family: var(--font-display); font-size: 40px; display: block; text-transform: none; letter-spacing: -0.01em; font-weight: 400; margin-bottom: 4px; }
+
+  /* Sections */
+  section { padding: 96px 0; }
+  section h2 { font-family: var(--font-display); font-size: 52px; font-weight: 400; line-height: 1.05; letter-spacing: -0.015em; margin: 0 0 16px; text-wrap: balance; }
+  section .eyebrow { color: var(--oxford-terracotta); margin-bottom: 18px; }
+  section .lead { max-width: 620px; margin: 0 0 56px; color: var(--fg-2); font-size: 18px; line-height: 1.55; }
+
+  /* Service cards */
+  .services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .service { background: #fff; border: 1px solid var(--border-1); border-radius: 16px; padding: 28px; transition: all 220ms var(--ease-out); cursor: pointer; }
+  .service:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--oxford-blue-300); }
+  .service-ic { width: 44px; height: 44px; border-radius: 10px; background: var(--oxford-blue-50); color: var(--oxford-blue); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .service h3 { font-family: var(--font-sans); font-weight: 700; font-size: 20px; margin: 0 0 8px; }
+  .service p { font-size: 14px; color: var(--fg-2); line-height: 1.55; margin: 0 0 16px; }
+  .service .link { font-size: 13px; font-weight: 600; color: var(--oxford-blue); display: inline-flex; align-items: center; gap: 6px; }
+
+  /* Case strip */
+  .cases-bg { background: var(--oxford-cream); }
+  .cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .case { background: #fff; border-radius: 14px; padding: 28px; border: 1px solid rgba(30,37,64,0.06); }
+  .case .client { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--fg-3); font-weight: 600; }
+  .case .stat-big { font-family: var(--font-display); font-size: 56px; color: var(--oxford-terracotta); line-height: 1; margin: 14px 0 6px; letter-spacing: -0.01em; }
+  .case .unit { font-size: 13px; color: var(--fg-2); margin-bottom: 20px; }
+  .case .quote { font-family: var(--font-serif); font-style: italic; font-size: 17px; line-height: 1.35; color: var(--fg-1); border-top: 1px solid var(--border-1); padding-top: 16px; }
+
+  /* Big quote section */
+  .pull { background: var(--oxford-blue-900); color: #fff; padding: 120px 0; }
+  .pull-inner { max-width: 880px; margin: 0 auto; text-align: center; }
+  .pull .eyebrow { color: var(--oxford-terracotta); margin-bottom: 24px; }
+  .pull blockquote { font-family: var(--font-display); font-size: 48px; line-height: 1.2; margin: 0 0 32px; color: #fff; font-weight: 400; }
+  .pull blockquote em { color: var(--oxford-terracotta); font-style: italic; }
+  .pull .cite { font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+
+  /* Process */
+  .process { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .step { position: relative; }
+  .step .num { font-family: var(--font-display); font-size: 60px; line-height: 1; color: var(--oxford-terracotta); margin-bottom: 12px; }
+  .step h3 { font-family: var(--font-sans); font-size: 18px; font-weight: 700; margin: 0 0 8px; }
+  .step p { font-size: 14px; color: var(--fg-2); line-height: 1.55; margin: 0; }
+
+  /* Final CTA */
+  .cta { background: var(--oxford-blue); color: #fff; border-radius: 24px; padding: 72px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; align-items: center; margin: 0 32px; }
+  .cta h2 { color: #fff; font-size: 44px; margin: 0 0 12px; }
+  .cta p { color: rgba(255,255,255,0.75); margin: 0 0 24px; font-size: 16px; }
+  .cta form { display: flex; flex-direction: column; gap: 12px; }
+  .cta input { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 14px 16px; border-radius: 10px; font-family: var(--font-sans); font-size: 15px; outline: none; }
+  .cta input::placeholder { color: rgba(255,255,255,0.5); }
+  .cta input:focus { border-color: var(--oxford-terracotta); }
+
+  /* Footer */
+  footer { padding: 56px 0 40px; color: var(--fg-3); font-size: 13px; }
+  .foot-inner { display: flex; justify-content: space-between; align-items: center; }
+  .foot-links { display: flex; gap: 28px; }
+  .foot-links a { color: var(--fg-2); text-decoration: none; }
+  .foot-links a:hover { color: var(--oxford-blue); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <div class="nav-logo">
+      <svg width="32" height="32" viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="#263fa3"/><path d="M40 18 C 26 18, 18 28, 18 40 C 18 54, 30 62, 40 62 C 48 62, 54 56, 54 48 C 54 42, 48 38, 42 38" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round"/></svg>
+      <div>
+        <div class="word">Oxford</div>
+        <div class="sub">Soluções Digitais</div>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="#servicos">Serviços</a>
+      <a href="#cases">Cases</a>
+      <a href="#processo">Processo</a>
+      <a href="#contato">Sobre</a>
+    </div>
+    <a href="#cta" class="btn btn-accent">Agendar diagnóstico →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Performance · tráfego pago · conteúdo</div>
+    <h1>Tráfego mal feito é o que custa caro. <em>Não o tráfego.</em></h1>
+    <p>A Oxford opera marketing digital como uma operação — não como freelancer. Diagnóstico honesto, execução diária, números transparentes. Para empresários que cansaram de queimar orçamento.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-accent" href="#cta">Agendar diagnóstico →</a>
+      <a class="btn btn-ghost" style="color:#fff; border-color: rgba(255,255,255,0.4)" href="#cases">Ver cases</a>
+    </div>
+    <div class="hero-meta">
+      <div><strong>R$ 42M+</strong>gerados em vendas</div>
+      <div><strong>+120</strong>empresas atendidas</div>
+      <div><strong>4,7×</strong>ROAS médio</div>
+    </div>
+  </div>
+</section>
+
+<section id="servicos">
+  <div class="wrap">
+    <div class="eyebrow">SERVIÇOS</div>
+    <h2>O que a Oxford faz pela sua operação.</h2>
+    <p class="lead">Três frentes que funcionam juntas. Não vendemos um serviço isolado — vendemos uma operação que escala.</p>
+    <div class="services">
+      <div class="service">
+        <div class="service-ic"><i data-lucide="target"></i></div>
+        <h3>Tráfego pago</h3>
+        <p>Meta, Google, TikTok e LinkedIn Ads operados diariamente. Criativos novos por semana, funis testados e dashboards transparentes.</p>
+        <span class="link">Ver abordagem <i data-lucide="arrow-right" width="14"></i></span>
+      </div>
+      <div class="service">
+        <div class="service-ic"><i data-lucide="video"></i></div>
+        <h3>Conteúdo orgânico</h3>
+        <p>Reels em série, carrosséis de autoridade e roteiros para CEO falar direto com a câmera. Editorial, não viral.</p>
+        <span class="link">Ver abordagem <i data-lucide="arrow-right" width="14"></i></span>
+      </div>
+      <div class="service">
+        <div class="service-ic"><i data-lucide="line-chart"></i></div>
+        <h3>Consultoria de funil</h3>
+        <p>Diagnóstico de 30 dias que mostra onde a receita está vazando. Relatório escrito, reunião de estratégia, plano de 90 dias.</p>
+        <span class="link">Ver abordagem <i data-lucide="arrow-right" width="14"></i></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cases" class="cases-bg">
+  <div class="wrap">
+    <div class="eyebrow">CASES</div>
+    <h2>Números. Prazos. Nomes.</h2>
+    <p class="lead">Prova social concreta — do tipo que empresário reconhece antes de contratar.</p>
+    <div class="cases">
+      <div class="case">
+        <div class="client">E-commerce · moda feminina</div>
+        <div class="stat-big">+287%</div>
+        <div class="unit">de receita em 90 dias</div>
+        <div class="quote">"Reestruturaram nosso Meta Ads e passaram a operar diariamente. O resultado veio no segundo mês."</div>
+      </div>
+      <div class="case">
+        <div class="client">Clínica · odontologia</div>
+        <div class="stat-big">R$ 310k</div>
+        <div class="unit">em 60 dias, partindo de R$ 80k</div>
+        <div class="quote">"Pela primeira vez eu consigo ver onde meu orçamento de marketing está indo. Sem floreio."</div>
+      </div>
+      <div class="case">
+        <div class="client">SaaS · gestão financeira</div>
+        <div class="stat-big">4,8×</div>
+        <div class="unit">de ROAS nos primeiros 120 dias</div>
+        <div class="quote">"Saí de uma agência que me mandava PDF bonito. Na Oxford eu acompanho pelo dashboard."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pull">
+  <div class="wrap pull-inner">
+    <div class="eyebrow">POR QUE A OXFORD</div>
+    <blockquote>Agência não precisa ser freela de luxo. <em>Precisa ser operação.</em></blockquote>
+    <div class="cite">— Renan Oliveira, CEO</div>
+  </div>
+</section>
+
+<section id="processo">
+  <div class="wrap">
+    <div class="eyebrow">PROCESSO</div>
+    <h2>Quatro passos. Um compromisso.</h2>
+    <p class="lead">Sem contrato de 12 meses engessado. Cada trimestre é uma nova decisão — baseada em números.</p>
+    <div class="process">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Diagnóstico</h3>
+        <p>Reunião de 30 min + análise da conta atual. Sem custo, sem amarração.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Plano de 90 dias</h3>
+        <p>Documento escrito com estratégia, metas e orçamento. Você aprova antes de começar.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Operação diária</h3>
+        <p>Execução, otimização e criativos novos toda semana. Relatório semanal.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h3>Revisão trimestral</h3>
+        <p>Decidimos juntos o próximo ciclo. Continuar, ajustar ou encerrar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="cta">
+    <div>
+      <h2>Agende seu diagnóstico.</h2>
+      <p>30 minutos. Sem compromisso. Mostramos exatamente o que está queimando seu orçamento antes de qualquer proposta comercial.</p>
+    </div>
+    <form onsubmit="event.preventDefault(); this.innerHTML='<div style=\'color:#fff; font-size:15px; padding:20px; text-align:center;\'>Recebemos seus dados. Entraremos em contato em até 24h.</div>'">
+      <input placeholder="Seu nome" required>
+      <input placeholder="E-mail" type="email" required>
+      <input placeholder="Faturamento mensal aproximado" required>
+      <button type="submit" class="btn btn-accent" style="justify-content:center">Quero meu diagnóstico →</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div>© 2026 Oxford Soluções Digitais</div>
+    <div class="foot-links">
+      <a href="#"><i data-lucide="camera" width="16"></i></a>
+      <a href="#"><i data-lucide="linkedin" width="16"></i></a>
+      <a href="#">Política de privacidade</a>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons({ attrs: { 'stroke-width': 1.5 }});</script>
+</body>
+</html>

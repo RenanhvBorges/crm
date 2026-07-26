@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 14px 12px; }
+  .ic { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--fg-1); }
+  .ic i { display: block; }
+  .ic span { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="ic"><i data-lucide="arrow-right"></i><span>arrow-right</span></div>
+  <div class="ic"><i data-lucide="trending-up"></i><span>trending-up</span></div>
+  <div class="ic"><i data-lucide="target"></i><span>target</span></div>
+  <div class="ic"><i data-lucide="line-chart"></i><span>line-chart</span></div>
+  <div class="ic"><i data-lucide="calendar"></i><span>calendar</span></div>
+  <div class="ic"><i data-lucide="users"></i><span>users</span></div>
+  <div class="ic"><i data-lucide="message-square"></i><span>message</span></div>
+  <div class="ic"><i data-lucide="check-circle-2"></i><span>check</span></div>
+  <div class="ic" style="color: var(--oxford-terracotta)"><i data-lucide="sparkles"></i><span>accent</span></div>
+  <div class="ic"><i data-lucide="mail"></i><span>mail</span></div>
+  <div class="ic"><i data-lucide="phone"></i><span>phone</span></div>
+  <div class="ic"><i data-lucide="instagram"></i><span>instagram</span></div>
+  <div class="ic"><i data-lucide="linkedin"></i><span>linkedin</span></div>
+  <div class="ic"><i data-lucide="play"></i><span>play</span></div>
+  <div class="ic"><i data-lucide="file-text"></i><span>file</span></div>
+  <div class="ic"><i data-lucide="bar-chart-3"></i><span>bar-chart</span></div>
+</div>
+<script>lucide.createIcons({ attrs: { 'stroke-width': 1.5, width: 22, height: 22 }});</script>
+</body>
+</html>

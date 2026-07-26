@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  html, body { margin: 0; background: var(--bg-page); }
+  .card { padding: 20px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .semantic { border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
+  .dot { width: 14px; height: 14px; border-radius: 999px; margin-right: 10px; }
+  .label { display: flex; align-items: center; }
+  .hex { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="semantic" style="background:#e3f5eb; color:#1f8f5a;"><div class="label"><span class="dot" style="background:#1f8f5a"></span>Success</div><span class="hex">#1f8f5a</span></div>
+  <div class="semantic" style="background:#fbf1d9; color:#b87a15;"><div class="label"><span class="dot" style="background:#b87a15"></span>Warning</div><span class="hex">#b87a15</span></div>
+  <div class="semantic" style="background:#fbe4e2; color:#b1342c;"><div class="label"><span class="dot" style="background:#b1342c"></span>Danger</div><span class="hex">#b1342c</span></div>
+  <div class="semantic" style="background:#e0e5f4; color:#263fa3;"><div class="label"><span class="dot" style="background:#263fa3"></span>Info</div><span class="hex">#263fa3</span></div>
+</div>
+</body>
+</html>
