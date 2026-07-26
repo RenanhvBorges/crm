@@ -176,19 +176,3 @@ export function renderBlocksToHtml(doc: EmailDocument): string {
 export function newBlockId(): string {
   return crypto.randomUUID();
 }
-
-// Documento inicial para uma campanha/template com conteúdo simples (usado
-// pelo formulário de textarea até o editor de blocos entrar no lugar).
-export function textOnlyDocument(plainText: string): EmailDocument {
-  const html = escapeHtml(plainText).replace(/\n/g, "<br />");
-  return { blocks: [{ id: newBlockId(), type: "text", html, align: "left" }] };
-}
-
-// Extrai um texto plano aproximado de volta de um documento (para reabrir o
-// campo simples quando o conteúdo ainda não usa o editor de blocos completo).
-export function documentToPlainText(doc: EmailDocument): string {
-  if (doc.blocks.length === 1 && doc.blocks[0].type === "text") {
-    return doc.blocks[0].html.replace(/<br\s*\/?>/g, "\n").replace(/&quot;/g, '"').replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
-  }
-  return "";
-}

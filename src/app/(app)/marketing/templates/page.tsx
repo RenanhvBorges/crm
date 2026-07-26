@@ -1,6 +1,16 @@
-import { LayoutTemplate } from "lucide-react";
+import Link from "next/link";
+import { LayoutTemplate, Copy } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { DeleteFieldButton } from "@/components/delete-field-button";
+import { createTemplate, deleteTemplate, duplicateTemplate } from "./actions";
 
-export default function EmailTemplatesPage() {
+export default async function EmailTemplatesPage() {
+  const supabase = await createClient();
+  const { data: templates } = await supabase
+    .from("email_templates")
+    .select("id, name, subject, updated_at")
+    .order("updated_at", { ascending: false });
+
   return (
     <div className="max-w-2xl">
       <h1 className="mb-1 text-2xl">Templates de e-mail</h1>
@@ -8,21 +18,80 @@ export default function EmailTemplatesPage() {
         Modelos reutilizáveis para campanhas, com editor de blocos arrastáveis.
       </p>
 
-      <div className="flex items-center gap-4 rounded-lg border border-border-1 bg-oxford-white p-4 opacity-70">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-bg-surface-2 text-fg-3">
-          <LayoutTemplate size={20} strokeWidth={1.5} />
-        </span>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-fg-1">Editor de blocos</p>
-          <p className="text-xs text-fg-3">
-            Por enquanto, o conteúdo das campanhas é editado como texto simples na própria
-            campanha, em Marketing → Campanhas.
+      <div className="mb-6 rounded-lg border border-border-1 bg-oxford-white">
+        {templates?.length ? (
+          <ul className="divide-y divide-border-1">
+            {templates.map((t) => (
+              <li key={t.id} className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-start gap-3">
+                  <LayoutTemplate size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-fg-3" />
+                  <div>
+                    <Link
+                      href={`/marketing/templates/${t.id}`}
+                      className="text-sm font-medium text-fg-brand hover:underline"
+                    >
+                      {t.name}
+                    </Link>
+                    {t.subject ? <p className="text-xs text-fg-3">{t.subject}</p> : null}
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <form action={duplicateTemplate.bind(null, t.id)}>
+                    <button
+                      type="submit"
+                      className="text-fg-muted hover:text-fg-2"
+                      aria-label="Duplicar"
+                    >
+                      <Copy size={16} strokeWidth={1.5} />
+                    </button>
+                  </form>
+                  <DeleteFieldButton
+                    fieldId={t.id}
+                    deleteAction={deleteTemplate}
+                    confirmMessage="Excluir este template?"
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="px-4 py-6 text-center text-sm text-fg-muted">
+            Nenhum template criado ainda.
           </p>
-        </div>
-        <span className="rounded-full bg-bg-surface-2 px-2 py-0.5 text-xs text-fg-3">
-          em breve
-        </span>
+        )}
       </div>
+
+      <form
+        action={createTemplate}
+        className="space-y-4 rounded-lg border border-border-1 bg-oxford-white p-4"
+      >
+        <h3 className="text-sm font-semibold text-fg-2">Novo template</h3>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-fg-2">Nome</label>
+          <input
+            name="name"
+            required
+            placeholder="ex: Boas-vindas"
+            className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium text-fg-2">
+            Assunto padrão (opcional)
+          </label>
+          <input
+            name="subject"
+            placeholder="Pode ser ajustado depois, por campanha"
+            className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none"
+          />
+        </div>
+        <button
+          type="submit"
+          className="rounded-md bg-oxford-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-oxford-blue-600"
+        >
+          Criar template
+        </button>
+      </form>
     </div>
   );
 }

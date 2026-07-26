@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AudiencePicker } from "@/components/audience-picker";
+import { PlaceholderTextInput } from "@/components/placeholder-text-input";
 import { DeleteFieldButton } from "@/components/delete-field-button";
-import { documentToPlainText, parseEmailDocument } from "@/lib/email-blocks";
+import { parseEmailDocument } from "@/lib/email-blocks";
+import { listAvailablePlaceholders } from "@/lib/email-placeholders";
 import { updateCampaignDetails, updateCampaignAudience, deleteCampaign } from "../actions";
 import { CampaignEditorClient } from "./campaign-editor-client";
 
@@ -14,16 +16,22 @@ export default async function CampaignDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: campaign }, { data: contacts }, { data: lists }, { data: recipients }] =
-    await Promise.all([
-      supabase.from("email_campaigns").select("*").eq("id", id).single(),
-      supabase.from("contacts").select("id, name, email").order("name"),
-      supabase.from("contact_lists").select("id, name").order("sort_order"),
-      supabase
-        .from("email_campaign_recipients")
-        .select("status, opened_at, clicked_at")
-        .eq("campaign_id", id),
-    ]);
+  const [
+    { data: campaign },
+    { data: contacts },
+    { data: lists },
+    { data: recipients },
+    { data: fieldDefs },
+  ] = await Promise.all([
+    supabase.from("email_campaigns").select("*").eq("id", id).single(),
+    supabase.from("contacts").select("id, name, email").order("name"),
+    supabase.from("contact_lists").select("id, name").order("sort_order"),
+    supabase
+      .from("email_campaign_recipients")
+      .select("status, opened_at, clicked_at")
+      .eq("campaign_id", id),
+    supabase.from("custom_field_definitions").select("*").eq("entity", "contact"),
+  ]);
 
   if (!campaign) notFound();
 
@@ -39,6 +47,7 @@ export default async function CampaignDetailPage({
 
   const updateDetails = updateCampaignDetails.bind(null, id);
   const updateAudience = updateCampaignAudience.bind(null, id);
+  const placeholderOptions = listAvailablePlaceholders(fieldDefs ?? []);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -67,11 +76,11 @@ export default async function CampaignDetailPage({
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-fg-2">Assunto</label>
-            <input
+            <PlaceholderTextInput
               name="subject"
               defaultValue={campaign.subject}
               required
-              className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none"
+              placeholders={placeholderOptions}
             />
           </div>
           <button
@@ -115,7 +124,8 @@ export default async function CampaignDetailPage({
         campaignId={campaign.id}
         status={campaign.status}
         scheduledAt={campaign.scheduled_at}
-        initialContent={documentToPlainText(parseEmailDocument(campaign.content))}
+        initialContent={parseEmailDocument(campaign.content)}
+        placeholders={placeholderOptions}
         stats={stats}
       />
     </div>

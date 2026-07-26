@@ -1,27 +1,48 @@
-import { ChartColumn } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import {
+  computeEmailStatWidget,
+  computeEmailFormulaWidget,
+  type StatConfig,
+  type FormulaConfig,
+} from "@/lib/email-metrics";
+import { EmailMetricsClient, type ComputedMetricWidget } from "@/components/email-metrics-client";
 
-export default function EmailMetricsPage() {
-  return (
-    <div className="max-w-2xl">
-      <h1 className="mb-1 text-2xl">Métricas</h1>
-      <p className="mb-6 text-sm text-fg-3">
-        Dashboard de métricas de e-mail marketing, personalizável por usuário.
-      </p>
+export default async function EmailMetricsPage() {
+  const supabase = await createClient();
 
-      <div className="flex items-center gap-4 rounded-lg border border-border-1 bg-oxford-white p-4 opacity-70">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-bg-surface-2 text-fg-3">
-          <ChartColumn size={20} strokeWidth={1.5} />
-        </span>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-fg-1">Widgets de métricas</p>
-          <p className="text-xs text-fg-3">
-            Por enquanto, veja aberturas/cliques por campanha em Marketing → Campanhas.
-          </p>
-        </div>
-        <span className="rounded-full bg-bg-surface-2 px-2 py-0.5 text-xs text-fg-3">
-          em breve
-        </span>
-      </div>
-    </div>
+  const [{ data: widgets }, { data: campaigns }] = await Promise.all([
+    supabase
+      .from("email_metric_widgets")
+      .select("id, title, widget_type, config, sort_order")
+      .order("sort_order"),
+    supabase.from("email_campaigns").select("id, name").order("created_at", { ascending: false }),
+  ]);
+
+  const computed: ComputedMetricWidget[] = await Promise.all(
+    (widgets ?? []).map(async (w) => {
+      if (w.widget_type === "formula") {
+        const value = await computeEmailFormulaWidget(
+          supabase,
+          w.config as unknown as FormulaConfig,
+        );
+        return {
+          id: w.id,
+          title: w.title,
+          widgetType: "formula" as const,
+          config: w.config,
+          value,
+        };
+      }
+      const value = await computeEmailStatWidget(supabase, w.config as unknown as StatConfig);
+      return {
+        id: w.id,
+        title: w.title,
+        widgetType: "stat" as const,
+        config: w.config,
+        value,
+      };
+    }),
   );
+
+  return <EmailMetricsClient widgets={computed} campaigns={campaigns ?? []} />;
 }

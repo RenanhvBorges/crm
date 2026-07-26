@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { textOnlyDocument } from "@/lib/email-blocks";
+import { EMPTY_EMAIL_DOCUMENT, emailDocumentSchema, type EmailDocument } from "@/lib/email-blocks";
 import type { Json } from "@/lib/supabase/database.types";
 
 function parseAudience(formData: FormData) {
@@ -33,10 +33,24 @@ export async function createCampaign(formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const subject = String(formData.get("subject") ?? "").trim();
+  const templateId = String(formData.get("template_id") ?? "") || null;
   if (!name) throw new Error("Informe um nome para a campanha.");
   if (!subject) throw new Error("Informe um assunto.");
 
   const audience = parseAudience(formData);
+
+  let content: EmailDocument = EMPTY_EMAIL_DOCUMENT;
+  if (templateId) {
+    const { data: template } = await supabase
+      .from("email_templates")
+      .select("content")
+      .eq("id", templateId)
+      .single();
+    if (template) {
+      const parsed = emailDocumentSchema.safeParse(template.content);
+      if (parsed.success) content = parsed.data;
+    }
+  }
 
   const { data, error } = await supabase
     .from("email_campaigns")
@@ -44,7 +58,8 @@ export async function createCampaign(formData: FormData) {
       name,
       subject,
       ...audience,
-      content: textOnlyDocument("") as unknown as Json,
+      template_id: templateId,
+      content: content as unknown as Json,
     })
     .select("id")
     .single();
@@ -73,12 +88,15 @@ export async function updateCampaignDetails(id: string, formData: FormData) {
   revalidatePath("/marketing/campaigns");
 }
 
-export async function updateCampaignContent(id: string, plainText: string) {
+export async function updateCampaignContent(id: string, document: EmailDocument) {
+  const parsed = emailDocumentSchema.safeParse(document);
+  if (!parsed.success) throw new Error("Conteúdo do e-mail inválido.");
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("email_campaigns")
     .update({
-      content: textOnlyDocument(plainText) as unknown as Json,
+      content: parsed.data as unknown as Json,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

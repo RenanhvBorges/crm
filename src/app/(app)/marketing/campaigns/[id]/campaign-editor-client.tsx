@@ -2,6 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Eye, Pencil } from "lucide-react";
+import { BlockEditor } from "@/components/email-editor/block-editor";
+import { EmailPreview } from "@/components/email-editor/email-preview";
+import { renderBlocksToHtml, type EmailDocument } from "@/lib/email-blocks";
+import type { PlaceholderOption } from "@/lib/email-placeholders";
 import {
   updateCampaignContent,
   sendCampaignNow,
@@ -23,23 +28,26 @@ export function CampaignEditorClient({
   status,
   scheduledAt,
   initialContent,
+  placeholders,
   stats,
 }: {
   campaignId: string;
   status: string;
   scheduledAt: string | null;
-  initialContent: string;
+  initialContent: EmailDocument;
+  placeholders: PlaceholderOption[];
   stats: Stats;
 }) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [savedContent, setSavedContent] = useState(initialContent);
+  const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [scheduleValue, setScheduleValue] = useState("");
 
   const locked = status !== "draft";
-  const dirty = content !== savedContent;
+  const dirty = JSON.stringify(content) !== JSON.stringify(savedContent);
 
   function runAction(action: () => Promise<void>) {
     setError(null);
@@ -56,33 +64,62 @@ export function CampaignEditorClient({
   return (
     <section className="space-y-6">
       <div className="rounded-lg border border-border-1 bg-oxford-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-fg-2">Conteúdo</h2>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={locked}
-          rows={10}
-          placeholder="Escreva o e-mail aqui. Em breve: editor de blocos com imagens e botões."
-          className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none disabled:opacity-60"
-        />
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            disabled={locked || !dirty || isPending}
-            onClick={() =>
-              runAction(async () => {
-                await updateCampaignContent(campaignId, content);
-                setSavedContent(content);
-              })
-            }
-            className="rounded-md bg-oxford-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-oxford-blue-600 disabled:opacity-50"
-          >
-            {isPending ? "Salvando..." : "Salvar conteúdo"}
-          </button>
-          {!locked && dirty ? (
-            <span className="text-xs text-fg-muted">Alterações não salvas</span>
-          ) : null}
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-fg-2">Conteúdo</h2>
+          <div className="flex overflow-hidden rounded-md border border-border-1">
+            <button
+              type="button"
+              onClick={() => setMode("edit")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs ${
+                mode === "edit" ? "bg-oxford-blue text-white" : "text-fg-3 hover:bg-bg-surface-2"
+              }`}
+            >
+              <Pencil size={13} strokeWidth={1.5} />
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("preview")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs ${
+                mode === "preview" ? "bg-oxford-blue text-white" : "text-fg-3 hover:bg-bg-surface-2"
+              }`}
+            >
+              <Eye size={13} strokeWidth={1.5} />
+              Pré-visualizar
+            </button>
+          </div>
         </div>
+
+        {mode === "edit" ? (
+          locked ? (
+            <p className="text-sm text-fg-muted">
+              O conteúdo não pode mais ser editado (a campanha já saiu do status de rascunho).
+            </p>
+          ) : (
+            <BlockEditor value={content} onChange={setContent} placeholders={placeholders} />
+          )
+        ) : (
+          <EmailPreview html={renderBlocksToHtml(content)} />
+        )}
+
+        {!locked ? (
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={!dirty || isPending}
+              onClick={() =>
+                runAction(async () => {
+                  await updateCampaignContent(campaignId, content);
+                  setSavedContent(content);
+                })
+              }
+              className="rounded-md bg-oxford-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-oxford-blue-600 disabled:opacity-50"
+            >
+              {isPending ? "Salvando..." : "Salvar conteúdo"}
+            </button>
+            {dirty ? <span className="text-xs text-fg-muted">Alterações não salvas</span> : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="rounded-lg border border-border-1 bg-oxford-white p-4">
