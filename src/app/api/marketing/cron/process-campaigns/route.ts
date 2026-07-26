@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     .select("id")
     .eq("status", "sending");
 
-  const results: { campaignId: string; sent: number; remaining: number }[] = [];
+  const results: { campaignId: string; sent: number; remaining: number; error?: string }[] = [];
   for (const campaign of sending ?? []) {
     try {
       const result = await sendNextChunk(campaign.id);
@@ -42,11 +42,20 @@ export async function GET(request: Request) {
       if (result.remaining === 0) {
         await supabase
           .from("email_campaigns")
-          .update({ status: "sent", sent_at: new Date().toISOString() })
+          .update({ status: "sent", sent_at: new Date().toISOString(), error_message: null })
           .eq("id", campaign.id);
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       console.error(`[marketing-cron] falha ao enviar chunk de ${campaign.id}:`, err);
+      // Não muda o status (deixa em "sending" para tentar de novo no próximo
+      // tick) — só registra o erro pra ficar visível na UI, já que os logs
+      // do runtime não são acessíveis fora da Vercel.
+      await supabase
+        .from("email_campaigns")
+        .update({ error_message: message })
+        .eq("id", campaign.id);
+      results.push({ campaignId: campaign.id, sent: 0, remaining: -1, error: message });
     }
   }
 

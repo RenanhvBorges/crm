@@ -27,6 +27,7 @@ export function CampaignEditorClient({
   campaignId,
   status,
   scheduledAt,
+  errorMessage,
   initialContent,
   placeholders,
   stats,
@@ -34,6 +35,7 @@ export function CampaignEditorClient({
   campaignId: string;
   status: string;
   scheduledAt: string | null;
+  errorMessage: string | null;
   initialContent: EmailDocument;
   placeholders: PlaceholderOption[];
   stats: Stats;
@@ -189,6 +191,12 @@ export function CampaignEditorClient({
           </p>
         )}
 
+        {errorMessage ? (
+          <p className="mt-2 text-sm text-danger">
+            Último erro no envio: {errorMessage}
+            {status === "sending" ? " (tentando de novo automaticamente)" : ""}
+          </p>
+        ) : null}
         {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
       </div>
 

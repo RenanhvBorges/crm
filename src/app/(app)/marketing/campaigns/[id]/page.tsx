@@ -124,6 +124,7 @@ export default async function CampaignDetailPage({
         campaignId={campaign.id}
         status={campaign.status}
         scheduledAt={campaign.scheduled_at}
+        errorMessage={campaign.error_message}
         initialContent={parseEmailDocument(campaign.content)}
         placeholders={placeholderOptions}
         stats={stats}

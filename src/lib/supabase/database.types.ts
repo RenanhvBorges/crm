@@ -453,6 +453,7 @@ export type Database = {
           content: Json
           created_at: string
           created_by: string | null
+          error_message: string | null
           from_email: string | null
           from_name: string | null
           id: string
@@ -471,6 +472,7 @@ export type Database = {
           content?: Json
           created_at?: string
           created_by?: string | null
+          error_message?: string | null
           from_email?: string | null
           from_name?: string | null
           id?: string
@@ -489,6 +491,7 @@ export type Database = {
           content?: Json
           created_at?: string
           created_by?: string | null
+          error_message?: string | null
           from_email?: string | null
           from_name?: string | null
           id?: string
