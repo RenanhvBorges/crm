@@ -28,11 +28,16 @@ Stack: Next.js 16 (App Router, RSC + server actions), React 19, Supabase (`@supa
 - `/deals/fields` — **Campos** personalizados de negócios; mesma infra de Contatos (ver Modelo de dados).
 - `/deals/pipelines` — **Configurações de funil**: funis e estágios (movido de `/settings/pipelines`).
 
-**Tarefas** (`/tasks`) — lista simples vinculável a contato/negócio.
+**Marketing** — grupo com 3 sub-rotas: `/marketing/campaigns` (campanhas de e-mail via Resend, com editor drag-and-drop de blocos), `/marketing/templates` (templates reusáveis, mesmo editor) e `/marketing/metrics` (widgets de métricas). O envio real acontece só no cron `/api/marketing/cron/process-campaigns` — a UI apenas marca `scheduled_at`.
 
-**Configurações** (`/settings`) — página placeholder do menu global de Configurações, reservada para ajustes futuros (senha, domínios de e-mail). As configurações de funil saíram daqui para Negócios → Configurações de funil.
+**Automações** (`/automations`) — motor trigger→ação estilo ActiveCampaign, com builder no-code em fluxograma vertical.
+- `/automations` — listagem com status (rascunho/ativa/pausada), resumo do gatilho, contadores de inscrições, ativar/pausar, duplicar e excluir.
+- `/automations/[id]` — **builder**: card de gatilho no topo, coluna vertical de passos com botão “+” entre eles ([flow-editor.tsx](src/app/(app)/automations/[id]/flow-editor.tsx)), ramificação Se/Senão renderizada como duas colunas recursivas que reconvergem (profundidade máx. 2, sem lib de fluxograma — só Tailwind). Edição de cada passo é inline no card. Abaixo do builder, o histórico de inscrições com log por passo.
+- O fluxo é um jsonb validado por união discriminada zod em [src/lib/automations/flow.ts](src/lib/automations/flow.ts) (mesmo molde de `email-blocks.ts`), com helpers de travessia (`nextNode` sobe ao condition pai quando o ramo acaba). Catálogo de gatilhos em [triggers.ts](src/lib/automations/triggers.ts), de passos em [node-catalog.ts](src/lib/automations/node-catalog.ts).
 
-**Ainda não existe**: automações (triggers/actions), campanhas de e-mail, formulários de captura, segmentos dinâmicos, relatórios/analytics, papéis/permissões por usuário (hoje é single-tenant: toda tabela usa RLS `authenticated full access`, sem distinção de usuário/equipe).
+**Configurações** (`/settings`) — visão geral, Segurança, Usuários (só diretor), API (chaves) e Webhooks (assinaturas de saída).
+
+**Ainda não existe**: formulários de captura, segmentos dinâmicos, relatórios/analytics, papéis/permissões granulares (hoje só `comum` vs `diretor_comercial`; toda tabela usa RLS `authenticated full access`).
 
 ## Modelo de dados — tabelas-chave
 
@@ -43,6 +48,21 @@ Stack: Next.js 16 (App Router, RSC + server actions), React 19, Supabase (`@supa
 - `contact_lists` / `contact_list_members` — listas e membros (PK composta `list_id, contact_id`).
 - `pipelines` / `pipeline_stages` / `deals` / `deal_stage_history` — funil de vendas. `deals.custom_fields jsonb` guarda os campos personalizados de negócio (chave = `custom_field_definitions.key` com `entity='deal'`).
 - `tasks` — tarefas soltas ou vinculadas a `contact_id`/`deal_id`.
+- `email_campaigns` / `email_templates` / `email_campaign_recipients` / `email_events` / `email_suppressions` — e-mail marketing. `email_campaigns.is_system = true` marca as campanhas criadas pela ação "enviar e-mail" das automações (uma por envio); elas ficam fora das listagens e dos seletores.
+- `automation_events` — **log central de eventos**, alimentado por triggers de DB (`contacts_emit_automation_events`, `list_members_...`, `deals_...`, `tasks_...`) e, para `email.opened`/`email.clicked`, pelo webhook do Resend. É a fonte única tanto das automações quanto dos webhooks de saída. Os triggers ficam no banco de propósito: `contacts.tags` é sobrescrito por inteiro (só dá pra diffar com OLD/NEW) e o score é calculado por trigger BEFORE, então instrumentar no app deixaria de fora API, RPCs em massa e SQL direto.
+- `automations` / `automation_enrollments` / `automation_step_logs` — definição (gatilho + `flow` jsonb), inscrições em andamento (com `current_node_id`, `wait_until`, `locked_at`) e log de execução por passo.
+- `webhook_subscriptions` / `webhook_deliveries` — webhooks de saída: assinatura (URL, segredo, eventos assinados, `*` = todos) e fila de entregas com tentativas e backoff.
+
+## Automações — como o motor funciona
+
+[src/lib/automations/engine.ts](src/lib/automations/engine.ts) roda a cada 1 min pelo pg_cron (job `process-automations` → `/api/automations/cron/process`, `Bearer CRON_SECRET`) e também logo após mutações relevantes, via `kickAutomationProcessor()` ([kick.ts](src/lib/automations/kick.ts), usa `after()` do Next para não bloquear a resposta). Cada tick:
+1. Faz claim atômico dos eventos pendentes (RPC `claim_automation_events`, `FOR UPDATE SKIP LOCKED`), distribui para os webhooks de saída e inscreve contatos nas automações ativas cujo gatilho casa.
+2. Acorda esperas vencidas, faz claim por inscrição (`locked_at`, expira em 5 min) e avança os passos: `wait` agenda e sai, `condition` reavalia **relendo o contato do banco** (correto após esperas), ações rodam em [actions-exec.ts](src/lib/automations/actions-exec.ts).
+3. Drena a fila de entregas de webhook.
+
+**Proteção anti-loop** (ações mutam dados e geram novos eventos, então automações se encadeiam de propósito): nunca duas inscrições ativas da mesma dupla (automação, contato); sem `allow_reentry`, no máximo uma inscrição histórica; teto de 5 inscrições/hora por dupla; eventos com mais de 24 h não inscrevem; máximo de 20 passos por inscrição por tick. Passo que falha é retentado 3x (5 min) antes de a inscrição virar `failed`.
+
+Não existe ação "ajustar score": o score é derivado das `scoring_rules`, então a forma suportada de influenciá-lo por automação é adicionar/remover uma tag pontuada.
 
 ## Convenções do projeto
 
@@ -52,13 +72,19 @@ Stack: Next.js 16 (App Router, RSC + server actions), React 19, Supabase (`@supa
 - Após alterar o schema, regenerar `src/lib/supabase/database.types.ts` (MCP Supabase `generate_typescript_types`) antes de escrever código que dependa dos tipos.
 - Mudanças de escopo maior (nova entidade, novo módulo) devem passar por plan mode antes de implementar — o padrão até aqui foi: explorar código existente, tirar dúvidas de produto com o usuário via perguntas objetivas, só então gerar o plano.
 
+## API v1 e integrações
+
+`/api/v1/*` cobre contatos, tags, listas (e membros), campos personalizados, negócios, funis, tarefas, templates, campanhas, automações (incluindo inscrição manual) e webhooks de saída. Autenticação por `Authorization: Bearer <chave oxk_>` ([api-keys.ts](src/lib/api-keys.ts)); helpers compartilhados em [src/lib/api/](src/lib/api/) cuidam do envelope `{ data }`/`{ error }`, da validação zod v4 e da paginação `limit`/`offset`. Rotas que mutam dados chamam `kickAutomationProcessor()`. Rotas de API não passam pelo `proxy.ts`, então cada uma autentica sozinha.
+
+Webhooks de saída assinam eventos de `automation_events` e entregam por POST assinado (`X-Oxford-Signature: sha256=HMAC_SHA256(segredo, timestamp + "." + corpo)`), com 5 tentativas em backoff. É o caminho de integração com o n8n, junto com os endpoints REST.
+
 ## Roadmap direcional (não compromissado — validar escopo com o usuário antes de iniciar)
 
-Ordem provável de próximos módulos, rumo à paridade com ActiveCampaign:
-1. **Segmentos dinâmicos** para Listas (regras tipo tag/campo/atividade) — extensão natural do que já existe em `/contacts/lists`.
-2. **Automações** — motor de trigger→ação (ex: "tag adicionada" → "adicionar à lista" / "criar tarefa" / "enviar e-mail"). `contact_list_members` já foi desenhada pensando nisso.
-3. **Campanhas de e-mail / marketing** — envio para listas/segmentos.
-4. **Formulários de captura** — landing pages/forms que criam contatos.
-5. **Relatórios/analytics** — métricas de funil, engajamento de campanhas.
+Ordem provável dos próximos passos, rumo à paridade com ActiveCampaign:
+1. **Node comunitário do n8n** para este CRM, consumindo a API v1 e os webhooks de saída.
+2. **Segmentos dinâmicos** para Listas (regras tipo tag/campo/atividade) — extensão natural de `/contacts/lists`, e viraria também um gatilho de automação ("entrou no segmento").
+3. **Formulários de captura** — landing pages/forms que criam contatos (e disparam automações).
+4. **Relatórios/analytics** — métricas de funil, engajamento de campanhas e desempenho das automações.
+5. **Melhorias do builder** — reordenar passos por drag-and-drop, esperar até um horário do dia, gatilho por inatividade.
 
 Este roadmap é uma referência de direção, não uma spec — cada item precisa da mesma rodada de alinhamento de escopo (como a que gerou o módulo de Contatos) antes de virar código.
