@@ -20,6 +20,10 @@ export const tagCreateSchema = z.object({
 });
 export const tagUpdateSchema = tagCreateSchema.partial();
 
+export const contactTagsSchema = z.object({
+  tags: z.array(z.string().min(1)).min(1, "Informe ao menos uma tag."),
+});
+
 export const listCreateSchema = z.object({
   name: z.string().min(1, "O campo 'name' é obrigatório."),
   description: z.string().nullish(),
@@ -40,6 +44,15 @@ export const customFieldCreateSchema = z.object({
   options: z.unknown().nullish(),
   group_id: z.uuid().nullish(),
   sort_order: z.number().int().optional(),
+});
+// `entity` é omitido: trocar a entidade de um campo existente órfanaria os
+// valores já gravados em contacts/deals.custom_fields.
+export const customFieldUpdateSchema = customFieldCreateSchema.omit({ entity: true }).partial();
+
+export const automationUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  status: z.enum(["draft", "active", "paused"]).optional(),
+  allow_reentry: z.boolean().optional(),
 });
 
 export const dealCreateSchema = z.object({

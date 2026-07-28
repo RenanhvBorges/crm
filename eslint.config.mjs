@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Pacote do node do n8n: tem lint próprio (n8n-node lint).
+    "n8n-nodes-oxford-crm/**",
   ]),
 ]);
 

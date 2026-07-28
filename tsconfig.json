@@ -30,5 +30,7 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // O pacote do node do n8n tem tsconfig próprio e depende de n8n-workflow,
+  // que não está instalado aqui — precisa ficar fora do type-check do Next.
+  "exclude": ["node_modules", "n8n-nodes-oxford-crm"]
 }

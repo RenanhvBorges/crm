@@ -13,6 +13,10 @@
 # testing
 /coverage
 
+# pacote do node do n8n (build e deps próprias)
+/n8n-nodes-oxford-crm/node_modules
+/n8n-nodes-oxford-crm/dist
+
 # next.js
 /.next/
 /out/

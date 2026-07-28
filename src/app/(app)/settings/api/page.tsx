@@ -123,9 +123,21 @@ const API_RESOURCES = [
   {
     path: "/api/v1/contacts",
     methods: "GET, POST",
-    notes: "Filtros ?q, ?tag, ?list_id. POST aceita ?upsert=email para atualizar por e-mail.",
+    notes:
+      "Filtros ?q (busca parcial), ?email (exato), ?tag, ?list_id. POST aceita ?upsert=email para atualizar por e-mail.",
   },
   { path: "/api/v1/contacts/{id}", methods: "GET, PATCH, DELETE", notes: "—" },
+  {
+    path: "/api/v1/contacts/{id}/tags",
+    methods: "POST",
+    notes:
+      "{ tags: [...] } adiciona sem reescrever o array — seguro com chamadas concorrentes.",
+  },
+  {
+    path: "/api/v1/contacts/{id}/tags/{tag}",
+    methods: "DELETE",
+    notes: "Remove uma tag do contato.",
+  },
   {
     path: "/api/v1/tags",
     methods: "GET, POST",
@@ -133,7 +145,7 @@ const API_RESOURCES = [
   },
   {
     path: "/api/v1/tags/{id}",
-    methods: "PATCH, DELETE",
+    methods: "GET, PATCH, DELETE",
     notes: "Renomear/excluir propaga para as tags dos contatos.",
   },
   { path: "/api/v1/lists", methods: "GET, POST", notes: "Listas estáticas de contatos." },
@@ -148,6 +160,11 @@ const API_RESOURCES = [
     path: "/api/v1/custom-fields",
     methods: "GET, POST",
     notes: "GET exige ?entity=contact|deal.",
+  },
+  {
+    path: "/api/v1/custom-fields/{id}",
+    methods: "GET, PATCH, DELETE",
+    notes: "PATCH não muda a entidade do campo.",
   },
   {
     path: "/api/v1/deals",
@@ -174,6 +191,11 @@ const API_RESOURCES = [
   { path: "/api/v1/campaigns", methods: "GET", notes: "Campanhas manuais (leitura)." },
   { path: "/api/v1/automations", methods: "GET", notes: "Automações e seus gatilhos." },
   {
+    path: "/api/v1/automations/{id}",
+    methods: "GET, PATCH",
+    notes: "PATCH muda name, status (draft/active/paused) e allow_reentry — não o fluxo.",
+  },
+  {
     path: "/api/v1/automations/{id}/enroll",
     methods: "POST",
     notes: "Inscreve um contato: { contact_id } ou { email }. A automação precisa estar ativa.",
@@ -184,4 +206,9 @@ const API_RESOURCES = [
     notes: "Assinaturas de webhook de saída; a resposta inclui o segredo.",
   },
   { path: "/api/v1/webhooks/{id}", methods: "GET, PATCH, DELETE", notes: "—" },
+  {
+    path: "/api/v1/users",
+    methods: "GET",
+    notes: "Usuários do CRM (leitura) — para preencher o responsável de tarefas.",
+  },
 ];

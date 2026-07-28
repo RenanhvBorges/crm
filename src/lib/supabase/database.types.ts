@@ -1172,6 +1172,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_contact_tags: {
+        Args: { p_contact_id: string; p_tags: string[] }
+        Returns: {
+          company: string | null
+          created_at: string
+          custom_fields: Json
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          score: number
+          tags: string[]
+          updated_at: string
+        }[]
+      }
       claim_automation_events: {
         Args: { p_limit?: number }
         Returns: {
@@ -1196,6 +1211,21 @@ export type Database = {
       }
       recalculate_all_contact_scores: { Args: never; Returns: undefined }
       remove_contact_tag: { Args: { tag_name: string }; Returns: undefined }
+      remove_contact_tags: {
+        Args: { p_contact_id: string; p_tags: string[] }
+        Returns: {
+          company: string | null
+          created_at: string
+          custom_fields: Json
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          score: number
+          tags: string[]
+          updated_at: string
+        }[]
+      }
       rename_contact_tag: {
         Args: { new_name: string; old_name: string }
         Returns: undefined

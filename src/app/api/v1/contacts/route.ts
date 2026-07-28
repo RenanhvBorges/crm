@@ -10,6 +10,7 @@ const CONTACT_COLUMNS =
 export const GET = withApiAuth(async (_request, { admin, url }) => {
   const pagination = getPagination(url);
   const search = url.searchParams.get("q");
+  const email = url.searchParams.get("email");
   const tag = url.searchParams.get("tag");
   const listId = url.searchParams.get("list_id");
 
@@ -27,6 +28,9 @@ export const GET = withApiAuth(async (_request, { admin, url }) => {
   if (search) {
     query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`);
   }
+  // ?email é match exato (≠ ?q, que é busca parcial): é como uma integração
+  // decide entre criar um contato novo ou atualizar o existente.
+  if (email) query = query.eq("email", email);
   if (tag) query = query.contains("tags", [tag]);
   if (contactIdsInList) query = query.in("id", contactIdsInList);
 

@@ -4,6 +4,16 @@ import { kickAutomationProcessor } from "@/lib/automations/kick";
 
 type Params = { id: string };
 
+export const GET = withApiAuth<Params>(async (_request, { admin, params }) => {
+  const { data, error } = await admin
+    .from("tags")
+    .select("id, name, color, created_at")
+    .eq("id", params.id)
+    .single();
+  throwOnDbError(error, "Tag não encontrada.");
+  return Response.json({ data });
+});
+
 // Renomear/excluir no catálogo propaga para contacts.tags via RPC, igual à UI.
 export const PATCH = withApiAuth<Params>(async (request, { admin, params }) => {
   const body = parseBody(tagUpdateSchema, await jsonBody(request));
