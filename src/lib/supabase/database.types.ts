@@ -55,6 +55,185 @@ export type Database = {
           },
         ]
       }
+      automation_enrollments: {
+        Row: {
+          automation_id: string
+          completed_at: string | null
+          contact_id: string
+          context: Json
+          created_at: string
+          current_node_id: string | null
+          error_message: string | null
+          event_id: string | null
+          id: string
+          locked_at: string | null
+          status: string
+          updated_at: string
+          wait_until: string | null
+        }
+        Insert: {
+          automation_id: string
+          completed_at?: string | null
+          contact_id: string
+          context?: Json
+          created_at?: string
+          current_node_id?: string | null
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          locked_at?: string | null
+          status?: string
+          updated_at?: string
+          wait_until?: string | null
+        }
+        Update: {
+          automation_id?: string
+          completed_at?: string | null
+          contact_id?: string
+          context?: Json
+          created_at?: string
+          current_node_id?: string | null
+          error_message?: string | null
+          event_id?: string | null
+          id?: string
+          locked_at?: string | null
+          status?: string
+          updated_at?: string
+          wait_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_enrollments_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_enrollments_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_enrollments_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "automation_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_events: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automation_step_logs: {
+        Row: {
+          detail: Json
+          enrollment_id: string
+          executed_at: string
+          id: string
+          node_id: string
+          node_type: string
+          status: string
+        }
+        Insert: {
+          detail?: Json
+          enrollment_id: string
+          executed_at?: string
+          id?: string
+          node_id: string
+          node_type: string
+          status: string
+        }
+        Update: {
+          detail?: Json
+          enrollment_id?: string
+          executed_at?: string
+          id?: string
+          node_id?: string
+          node_type?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_step_logs_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "automation_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      automations: {
+        Row: {
+          allow_reentry: boolean
+          created_at: string
+          flow: Json
+          id: string
+          name: string
+          status: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          allow_reentry?: boolean
+          created_at?: string
+          flow?: Json
+          id?: string
+          name: string
+          status?: string
+          trigger_config?: Json
+          trigger_type: string
+          updated_at?: string
+        }
+        Update: {
+          allow_reentry?: boolean
+          created_at?: string
+          flow?: Json
+          id?: string
+          name?: string
+          status?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_list_members: {
         Row: {
           added_at: string
@@ -457,6 +636,7 @@ export type Database = {
           from_email: string | null
           from_name: string | null
           id: string
+          is_system: boolean
           name: string
           scheduled_at: string | null
           sent_at: string | null
@@ -476,6 +656,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           id?: string
+          is_system?: boolean
           name: string
           scheduled_at?: string | null
           sent_at?: string | null
@@ -495,6 +676,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           id?: string
+          is_system?: boolean
           name?: string
           scheduled_at?: string | null
           sent_at?: string | null
@@ -895,11 +1077,112 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_id: string | null
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          next_retry_at: string
+          payload: Json
+          response_status: number | null
+          status: string
+          subscription_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_id?: string | null
+          event_type: string
+          id?: string
+          last_attempt_at?: string | null
+          next_retry_at?: string
+          payload: Json
+          response_status?: number | null
+          status?: string
+          subscription_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          next_retry_at?: string
+          payload?: Json
+          response_status?: number | null
+          status?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "automation_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_subscriptions: {
+        Row: {
+          created_at: string
+          events: string[]
+          id: string
+          is_active: boolean
+          name: string
+          secret: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          name: string
+          secret: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          name?: string
+          secret?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      claim_automation_events: {
+        Args: { p_limit?: number }
+        Returns: {
+          contact_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }[]
+      }
       compute_contact_score: {
         Args: {
           p_company: string

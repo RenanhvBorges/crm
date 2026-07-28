@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 import type { CustomFieldValues } from "@/lib/custom-fields";
 
 export async function createDeal(formData: FormData) {
@@ -25,6 +26,7 @@ export async function createDeal(formData: FormData) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/deals");
   if (contactId) revalidatePath(`/contacts/${contactId}`);
 }
@@ -60,6 +62,7 @@ export async function updateDeal(dealId: string, formData: FormData) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/deals");
   revalidatePath(`/deals/${dealId}`);
   if (contactId) revalidatePath(`/contacts/${contactId}`);
@@ -91,6 +94,7 @@ export async function moveDealStage(dealId: string, stageId: string) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/deals");
   revalidatePath("/", "layout");
 }

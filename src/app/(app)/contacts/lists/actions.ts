@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 
 export async function createList(formData: FormData) {
   const supabase = await createClient();
@@ -85,6 +86,7 @@ export async function addContactsToList(listId: string, contactIds: string[]) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath(`/contacts/lists/${listId}`);
   revalidatePath("/contacts/lists");
 }
@@ -102,6 +104,7 @@ export async function removeContactFromList(listId: string, contactId: string) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath(`/contacts/lists/${listId}`);
   revalidatePath("/contacts/lists");
 }

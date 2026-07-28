@@ -79,6 +79,29 @@ export function resolveContactPlaceholders(
   });
 }
 
+// Variante para texto puro (assunto de e-mail, título de tarefa/negócio):
+// mesma substituição, sem escapar HTML — escapar aqui viraria "&amp;" literal.
+export function resolvePlaceholdersText(
+  text: string,
+  contact: Contact,
+  customFieldDefs: CustomFieldDefinition[] = [],
+): string {
+  const customByKey = new Map(customFieldDefs.map((d) => [d.key, d]));
+  const customValues = (contact.custom_fields as Record<string, unknown> | null) ?? {};
+
+  return text.replace(PLACEHOLDER_RE, (match, path: string) => {
+    if (path.startsWith("campo.")) {
+      const key = path.slice("campo.".length);
+      const def = customByKey.get(key);
+      if (!def) return match;
+      return formatCustomFieldValue(customValues[key], def);
+    }
+    const fixed = FIXED_FIELDS[path as keyof typeof FIXED_FIELDS];
+    if (!fixed) return match;
+    return fixed(contact);
+  });
+}
+
 export type PlaceholderOption = { token: string; label: string };
 
 // Lista os placeholders disponíveis para a UI (picker): campos fixos +

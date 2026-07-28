@@ -24,6 +24,8 @@ import {
   Send,
   LayoutTemplate,
   ChartColumn,
+  Workflow,
+  Webhook,
   type LucideIcon,
 } from "lucide-react";
 
@@ -70,6 +72,12 @@ function getNavItems(isDirector: boolean): NavItem[] {
         { href: "/marketing/metrics", label: "Métricas", icon: ChartColumn },
       ],
     },
+    {
+      href: "/automations",
+      label: "Automações",
+      icon: Workflow,
+      children: [{ href: "/automations", label: "Todas as automações", icon: Workflow }],
+    },
     { href: "/tasks", label: "Tarefas", icon: CheckSquare },
     {
       href: "/settings",
@@ -82,6 +90,7 @@ function getNavItems(isDirector: boolean): NavItem[] {
           ? [{ href: "/settings/users", label: "Usuários", icon: UserCog }]
           : []),
         { href: "/settings/api", label: "API", icon: Braces },
+        { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
       ],
     },
   ];
@@ -97,7 +106,7 @@ function isActive(pathname: string, href: string) {
 
 // O filho-índice compartilha o href do próprio grupo (ex: "/contacts", "/deals"),
 // então só acende em match exato — senão acenderia junto das sub-rotas.
-const INDEX_CHILD_HREFS = new Set(["/contacts", "/deals", "/settings"]);
+const INDEX_CHILD_HREFS = new Set(["/contacts", "/deals", "/settings", "/automations"]);
 
 function isChildActive(pathname: string, href: string) {
   if (INDEX_CHILD_HREFS.has(href)) return pathname === href;

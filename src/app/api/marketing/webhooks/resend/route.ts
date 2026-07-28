@@ -99,6 +99,25 @@ export async function POST(request: Request) {
 
   const linkUrl = event.type === "email.clicked" ? event.data.click.link : null;
 
+  // Primeira abertura/clique deste destinatário (a coluna *_at ainda estava
+  // vazia) vira evento de automação — repetições não re-disparam automações.
+  if (
+    (event.type === "email.opened" || event.type === "email.clicked") &&
+    column &&
+    update[column] &&
+    recipient.contact_id
+  ) {
+    await supabase.from("automation_events").insert({
+      event_type: event.type,
+      contact_id: recipient.contact_id,
+      payload: {
+        campaign_id: recipient.campaign_id,
+        recipient_id: recipient.id,
+        link_url: linkUrl,
+      },
+    });
+  }
+
   // resend_event_id unique + svix-id estável entre retries do mesmo evento:
   // conflito aqui é só reentrega, ignora silenciosamente (idempotência).
   const { error: insertError } = await supabase.from("email_events").insert({

@@ -72,19 +72,116 @@ export default async function ApiSettingsPage() {
       <div className="rounded-lg border border-border-1 bg-oxford-white p-6">
         <h2 className="mb-3 text-sm font-semibold text-fg-1">Como usar</h2>
         <p className="mb-3 text-sm text-fg-2">
-          Envie a chave no header <code className="rounded bg-bg-surface-2 px-1 py-0.5 text-xs">Authorization: Bearer &lt;chave&gt;</code>.
+          Envie a chave no header{" "}
+          <Code>Authorization: Bearer &lt;chave&gt;</Code>. As respostas vêm em{" "}
+          <Code>{"{ data }"}</Code>; erros em <Code>{"{ error }"}</Code> com status 400 (JSON
+          inválido), 401 (chave), 404, 409 (conflito) ou 422 (validação).
         </p>
-        <ul className="space-y-1 text-sm text-fg-2">
-          <li>
-            <code className="rounded bg-bg-surface-2 px-1 py-0.5 text-xs">GET /api/v1/contacts</code>
-            {" — lista os contatos"}
-          </li>
-          <li>
-            <code className="rounded bg-bg-surface-2 px-1 py-0.5 text-xs">POST /api/v1/contacts</code>
-            {" — cria um contato (name obrigatório; email, phone, company, tags, custom_fields opcionais)"}
-          </li>
-        </ul>
+        <p className="mb-4 text-sm text-fg-2">
+          Listagens aceitam <Code>?limit</Code> (padrão 50, máx. 200) e <Code>?offset</Code>, e
+          respondem com <Code>{"meta: { limit, offset, total }"}</Code>.
+        </p>
+
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border-1 text-left text-xs text-fg-3">
+              <th className="py-2 font-medium">Recurso</th>
+              <th className="py-2 font-medium">Métodos</th>
+              <th className="py-2 font-medium">Observações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {API_RESOURCES.map((r) => (
+              <tr key={r.path} className="border-b border-border-1 align-top last:border-0">
+                <td className="py-2">
+                  <Code>{r.path}</Code>
+                </td>
+                <td className="py-2 text-xs text-fg-2">{r.methods}</td>
+                <td className="py-2 text-xs text-fg-3">{r.notes}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h3 className="mb-2 mt-6 text-sm font-semibold text-fg-1">Webhooks de saída</h3>
+        <p className="text-sm text-fg-2">
+          Configure em <Code>Configurações → Webhooks</Code> (ou pela API) para receber os eventos
+          do CRM assim que acontecerem. Cada entrega é um <Code>POST</Code> com{" "}
+          <Code>{"{ id, event_id, type, created_at, data }"}</Code> e o header{" "}
+          <Code>X-Oxford-Signature: sha256=HMAC_SHA256(segredo, timestamp + &quot;.&quot; + corpo)</Code>.
+        </p>
       </div>
     </div>
   );
 }
+
+function Code({ children }: { children: React.ReactNode }) {
+  return <code className="rounded bg-bg-surface-2 px-1 py-0.5 text-xs">{children}</code>;
+}
+
+const API_RESOURCES = [
+  {
+    path: "/api/v1/contacts",
+    methods: "GET, POST",
+    notes: "Filtros ?q, ?tag, ?list_id. POST aceita ?upsert=email para atualizar por e-mail.",
+  },
+  { path: "/api/v1/contacts/{id}", methods: "GET, PATCH, DELETE", notes: "—" },
+  {
+    path: "/api/v1/tags",
+    methods: "GET, POST",
+    notes: "Catálogo de tags (nome + cor).",
+  },
+  {
+    path: "/api/v1/tags/{id}",
+    methods: "PATCH, DELETE",
+    notes: "Renomear/excluir propaga para as tags dos contatos.",
+  },
+  { path: "/api/v1/lists", methods: "GET, POST", notes: "Listas estáticas de contatos." },
+  { path: "/api/v1/lists/{id}", methods: "GET, PATCH, DELETE", notes: "GET inclui member_count." },
+  {
+    path: "/api/v1/lists/{id}/members",
+    methods: "GET, POST",
+    notes: "POST em lote: { contact_ids: [...] }.",
+  },
+  { path: "/api/v1/lists/{id}/members/{contactId}", methods: "DELETE", notes: "—" },
+  {
+    path: "/api/v1/custom-fields",
+    methods: "GET, POST",
+    notes: "GET exige ?entity=contact|deal.",
+  },
+  {
+    path: "/api/v1/deals",
+    methods: "GET, POST",
+    notes: "Filtros ?pipeline_id, ?stage_id, ?status, ?contact_id.",
+  },
+  {
+    path: "/api/v1/deals/{id}",
+    methods: "GET, PATCH, DELETE",
+    notes: "status won/lost preenche closed_at automaticamente.",
+  },
+  { path: "/api/v1/pipelines", methods: "GET", notes: "Funis com os estágios aninhados." },
+  {
+    path: "/api/v1/tasks",
+    methods: "GET, POST",
+    notes: "Filtros ?status, ?contact_id, ?deal_id, ?assigned_to.",
+  },
+  {
+    path: "/api/v1/tasks/{id}",
+    methods: "GET, PATCH, DELETE",
+    notes: "status done preenche completed_at.",
+  },
+  { path: "/api/v1/templates", methods: "GET", notes: "Templates de e-mail (leitura)." },
+  { path: "/api/v1/campaigns", methods: "GET", notes: "Campanhas manuais (leitura)." },
+  { path: "/api/v1/automations", methods: "GET", notes: "Automações e seus gatilhos." },
+  {
+    path: "/api/v1/automations/{id}/enroll",
+    methods: "POST",
+    notes: "Inscreve um contato: { contact_id } ou { email }. A automação precisa estar ativa.",
+  },
+  {
+    path: "/api/v1/webhooks",
+    methods: "GET, POST",
+    notes: "Assinaturas de webhook de saída; a resposta inclui o segredo.",
+  },
+  { path: "/api/v1/webhooks/{id}", methods: "GET, PATCH, DELETE", notes: "—" },
+];
