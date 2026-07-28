@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { describeTrigger } from "@/lib/automations/triggers";
+import { parseFlow } from "@/lib/automations/flow";
+import { AutomationBuilderClient } from "./automation-builder-client";
 
 export default async function AutomationDetailPage({
   params,
@@ -10,22 +11,55 @@ export default async function AutomationDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: automation } = await supabase
-    .from("automations")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const [
+    { data: automation },
+    { data: tags },
+    { data: lists },
+    { data: pipelines },
+    { data: stages },
+    { data: campaigns },
+    { data: templates },
+    { data: fields },
+    { data: profiles },
+  ] = await Promise.all([
+    supabase.from("automations").select("*").eq("id", id).single(),
+    supabase.from("tags").select("name").order("name"),
+    supabase.from("contact_lists").select("id, name").order("sort_order"),
+    supabase.from("pipelines").select("id, name").order("sort_order"),
+    supabase.from("pipeline_stages").select("id, name, pipeline_id").order("sort_order"),
+    supabase.from("email_campaigns").select("id, name").order("created_at", { ascending: false }),
+    supabase.from("email_templates").select("id, name, subject").order("name"),
+    supabase
+      .from("custom_field_definitions")
+      .select("key, label")
+      .eq("entity", "contact")
+      .order("sort_order"),
+    supabase.from("profiles").select("id, full_name, email").order("email"),
+  ]);
+
   if (!automation) notFound();
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="mb-1 text-2xl">{automation.name}</h1>
-      <p className="mb-6 text-sm text-fg-3">
-        {describeTrigger(automation.trigger_type, automation.trigger_config)}
-      </p>
-      <div className="rounded-lg border border-border-1 bg-oxford-white p-4">
-        <p className="text-sm text-fg-muted">O builder visual do fluxo chega no próximo passo.</p>
-      </div>
-    </div>
+    <AutomationBuilderClient
+      automation={{
+        id: automation.id,
+        name: automation.name,
+        status: automation.status,
+        trigger_type: automation.trigger_type,
+        trigger_config: automation.trigger_config,
+        allow_reentry: automation.allow_reentry,
+      }}
+      initialFlow={parseFlow(automation.flow)}
+      catalogs={{
+        tags: tags ?? [],
+        lists: lists ?? [],
+        pipelines: pipelines ?? [],
+        stages: stages ?? [],
+        campaigns: campaigns ?? [],
+        templates: templates ?? [],
+        fields: fields ?? [],
+        profiles: (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name ?? p.email })),
+      }}
+    />
   );
 }
