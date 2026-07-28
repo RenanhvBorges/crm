@@ -55,6 +55,41 @@ export type Database = {
           },
         ]
       }
+      automation_events: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_list_members: {
         Row: {
           added_at: string
