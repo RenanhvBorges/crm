@@ -13,6 +13,7 @@ import {
 import { triggerMatches } from "./triggers";
 import { evaluateCondition } from "./conditions";
 import { executeNode } from "./actions-exec";
+import { fanOutEvent, processWebhookDeliveries } from "@/lib/webhooks/deliver";
 
 type Admin = SupabaseClient<Database>;
 type Automation = Tables<"automations">;
@@ -38,6 +39,8 @@ export type ProcessSummary = {
   events: number;
   enrolled: number;
   advanced: number;
+  webhooksQueued: number;
+  webhooksSent: number;
 };
 
 // Processa a fila de automações: consome eventos → inscreve contatos nas
@@ -45,7 +48,13 @@ export type ProcessSummary = {
 // acorda esperas vencidas. Chamado pelo cron (1 min) e pelo kick pós-mutação.
 export async function processAutomations(): Promise<ProcessSummary> {
   const admin = createAdminClient();
-  const summary: ProcessSummary = { events: 0, enrolled: 0, advanced: 0 };
+  const summary: ProcessSummary = {
+    events: 0,
+    enrolled: 0,
+    advanced: 0,
+    webhooksQueued: 0,
+    webhooksSent: 0,
+  };
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const { data: events, error: claimError } = await admin.rpc("claim_automation_events", {
@@ -53,13 +62,17 @@ export async function processAutomations(): Promise<ProcessSummary> {
     });
     if (claimError) throw new Error(claimError.message);
 
-    const { data: actives } = await admin.from("automations").select("*").eq("status", "active");
+    const [{ data: actives }, { data: subscriptions }] = await Promise.all([
+      admin.from("automations").select("*").eq("status", "active"),
+      admin.from("webhook_subscriptions").select("*").eq("is_active", true),
+    ]);
 
     let didWork = false;
 
     for (const event of events ?? []) {
       summary.events++;
       didWork = true;
+      summary.webhooksQueued += await fanOutEvent(admin, event, subscriptions ?? []);
       if (!event.contact_id) continue;
       if (Date.parse(event.created_at) < Date.now() - MAX_EVENT_AGE_MS) continue;
       for (const automation of actives ?? []) {
@@ -91,6 +104,9 @@ export async function processAutomations(): Promise<ProcessSummary> {
 
     if (!didWork) break;
   }
+
+  const deliveries = await processWebhookDeliveries(admin);
+  summary.webhooksSent += deliveries.succeeded;
 
   return summary;
 }

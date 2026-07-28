@@ -25,6 +25,7 @@ import {
   LayoutTemplate,
   ChartColumn,
   Workflow,
+  Webhook,
   type LucideIcon,
 } from "lucide-react";
 
@@ -89,6 +90,7 @@ function getNavItems(isDirector: boolean): NavItem[] {
           ? [{ href: "/settings/users", label: "Usuários", icon: UserCog }]
           : []),
         { href: "/settings/api", label: "API", icon: Braces },
+        { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
       ],
     },
   ];

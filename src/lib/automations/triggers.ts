@@ -133,6 +133,25 @@ export function triggerDefinition(type: string): TriggerDefinition | null {
   return TRIGGER_TYPES.find((t) => t.value === type) ?? null;
 }
 
+// Catálogo dos event_types gravados em automation_events — usado pela tela de
+// webhooks de saída e pela documentação da API.
+export const EVENT_TYPES: { value: string; label: string }[] = [
+  { value: "contact.created", label: "Contato criado" },
+  { value: "contact.tag_added", label: "Tag adicionada ao contato" },
+  { value: "contact.tag_removed", label: "Tag removida do contato" },
+  { value: "contact.score_changed", label: "Score do contato mudou" },
+  { value: "contact.list_joined", label: "Contato entrou em lista" },
+  { value: "contact.list_left", label: "Contato saiu de lista" },
+  { value: "deal.created", label: "Negócio criado" },
+  { value: "deal.stage_changed", label: "Negócio mudou de estágio" },
+  { value: "deal.won", label: "Negócio ganho" },
+  { value: "deal.lost", label: "Negócio perdido" },
+  { value: "task.created", label: "Tarefa criada" },
+  { value: "task.completed", label: "Tarefa concluída" },
+  { value: "email.opened", label: "E-mail aberto" },
+  { value: "email.clicked", label: "E-mail clicado" },
+];
+
 export type TriggerConfig = {
   tag?: string;
   listId?: string;
