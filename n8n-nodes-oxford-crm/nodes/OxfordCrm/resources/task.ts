@@ -1,0 +1,232 @@
+import type { INodeProperties } from 'n8n-workflow';
+import { taskLocator, unwrapData } from '../shared/descriptions';
+
+const show = { resource: ['task'] };
+
+const statusOptions = [
+	{ name: 'Pending', value: 'pending' },
+	{ name: 'Done', value: 'done' },
+];
+
+export const taskDescription: INodeProperties[] = [
+	{
+		displayName: 'Operation',
+		name: 'operation',
+		type: 'options',
+		noDataExpression: true,
+		displayOptions: { show },
+		default: 'getAll',
+		options: [
+			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a task',
+				description: 'Create a task, optionally linked to a contact or deal',
+				routing: { request: { method: 'POST', url: '/tasks' }, output: unwrapData },
+			},
+			{
+				name: 'Delete',
+				value: 'delete',
+				action: 'Delete a task',
+				description: 'Delete a task',
+				routing: {
+					request: { method: 'DELETE', url: '=/tasks/{{$parameter.taskId}}' },
+					output: unwrapData,
+				},
+			},
+			{
+				name: 'Get',
+				value: 'get',
+				action: 'Get a task',
+				description: 'Get a single task',
+				routing: {
+					request: { method: 'GET', url: '=/tasks/{{$parameter.taskId}}' },
+					output: unwrapData,
+				},
+			},
+			{
+				name: 'Get Many',
+				value: 'getAll',
+				action: 'Get many tasks',
+				description: 'Get many tasks',
+				routing: { request: { method: 'GET', url: '/tasks' }, output: unwrapData },
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				action: 'Update a task',
+				description: 'Update a task or mark it as done',
+				routing: {
+					request: { method: 'PATCH', url: '=/tasks/{{$parameter.taskId}}' },
+					output: unwrapData,
+				},
+			},
+		],
+	},
+	{
+		...taskLocator,
+		displayOptions: { show: { ...show, operation: ['get', 'update', 'delete'] } },
+	},
+	{
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		default: '',
+		required: true,
+		description: 'Title of the task',
+		displayOptions: { show: { ...show, operation: ['create'] } },
+		routing: { send: { type: 'body', property: 'title' } },
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { ...show, operation: ['create'] } },
+		options: [
+			{
+				displayName: 'Assigned To Name or ID',
+				name: 'assigned_to',
+				type: 'options',
+				typeOptions: { loadOptionsMethod: 'loadUsers' },
+				default: '',
+				description:
+					'User responsible for the task. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				routing: { send: { type: 'body', property: 'assigned_to' } },
+			},
+			{
+				displayName: 'Contact ID',
+				name: 'contact_id',
+				type: 'string',
+				default: '',
+				description: 'Contact the task is about',
+				routing: { send: { type: 'body', property: 'contact_id' } },
+			},
+			{
+				displayName: 'Deal ID',
+				name: 'deal_id',
+				type: 'string',
+				default: '',
+				description: 'Deal the task is about',
+				routing: { send: { type: 'body', property: 'deal_id' } },
+			},
+			{
+				displayName: 'Description',
+				name: 'description',
+				type: 'string',
+				typeOptions: { rows: 3 },
+				default: '',
+				description: 'Details of what has to be done',
+				routing: { send: { type: 'body', property: 'description' } },
+			},
+			{
+				displayName: 'Due Date',
+				name: 'due_date',
+				type: 'dateTime',
+				default: '',
+				description: 'When the task is due',
+				routing: { send: { type: 'body', property: 'due_date' } },
+			},
+		],
+	},
+	{
+		displayName: 'Update Fields',
+		name: 'updateFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: { show: { ...show, operation: ['update'] } },
+		options: [
+			{
+				displayName: 'Assigned To Name or ID',
+				name: 'assigned_to',
+				type: 'options',
+				typeOptions: { loadOptionsMethod: 'loadUsers' },
+				default: '',
+				description:
+					'User responsible for the task. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				routing: { send: { type: 'body', property: 'assigned_to' } },
+			},
+			{
+				displayName: 'Description',
+				name: 'description',
+				type: 'string',
+				typeOptions: { rows: 3 },
+				default: '',
+				description: 'Details of what has to be done',
+				routing: { send: { type: 'body', property: 'description' } },
+			},
+			{
+				displayName: 'Due Date',
+				name: 'due_date',
+				type: 'dateTime',
+				default: '',
+				description: 'When the task is due',
+				routing: { send: { type: 'body', property: 'due_date' } },
+			},
+			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'options',
+				options: statusOptions,
+				default: 'pending',
+				description: 'Marking it done also fills in the completion date',
+				routing: { send: { type: 'body', property: 'status' } },
+			},
+			{
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+				description: 'Title of the task',
+				routing: { send: { type: 'body', property: 'title' } },
+			},
+		],
+	},
+	{
+		displayName: 'Filters',
+		name: 'filters',
+		type: 'collection',
+		placeholder: 'Add Filter',
+		default: {},
+		displayOptions: { show: { ...show, operation: ['getAll'] } },
+		options: [
+			{
+				displayName: 'Assigned To Name or ID',
+				name: 'assigned_to',
+				type: 'options',
+				typeOptions: { loadOptionsMethod: 'loadUsers' },
+				default: '',
+				description:
+					'Only tasks of this user. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+				routing: { request: { qs: { assigned_to: '={{$value}}' } } },
+			},
+			{
+				displayName: 'Contact ID',
+				name: 'contact_id',
+				type: 'string',
+				default: '',
+				description: 'Only tasks linked to this contact',
+				routing: { request: { qs: { contact_id: '={{$value}}' } } },
+			},
+			{
+				displayName: 'Deal ID',
+				name: 'deal_id',
+				type: 'string',
+				default: '',
+				description: 'Only tasks linked to this deal',
+				routing: { request: { qs: { deal_id: '={{$value}}' } } },
+			},
+			{
+				displayName: 'Status',
+				name: 'status',
+				type: 'options',
+				options: statusOptions,
+				default: 'pending',
+				description: 'Only tasks with this status',
+				routing: { request: { qs: { status: '={{$value}}' } } },
+			},
+		],
+	},
+];

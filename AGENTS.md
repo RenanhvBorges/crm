@@ -74,17 +74,22 @@ Não existe ação "ajustar score": o score é derivado das `scoring_rules`, ent
 
 ## API v1 e integrações
 
-`/api/v1/*` cobre contatos, tags, listas (e membros), campos personalizados, negócios, funis, tarefas, templates, campanhas, automações (incluindo inscrição manual) e webhooks de saída. Autenticação por `Authorization: Bearer <chave oxk_>` ([api-keys.ts](src/lib/api-keys.ts)); helpers compartilhados em [src/lib/api/](src/lib/api/) cuidam do envelope `{ data }`/`{ error }`, da validação zod v4 e da paginação `limit`/`offset`. Rotas que mutam dados chamam `kickAutomationProcessor()`. Rotas de API não passam pelo `proxy.ts`, então cada uma autentica sozinha.
+`/api/v1/*` cobre contatos (incluindo `POST /contacts/{id}/tags` e `DELETE /contacts/{id}/tags/{tag}`, que somam/removem tags via as RPCs `add_contact_tags`/`remove_contact_tags` em um único UPDATE — o caminho seguro contra chamadas concorrentes, diferente do PATCH que reescreve o array), tags, listas (e membros), campos personalizados, negócios, funis, tarefas, templates, campanhas, automações (leitura, inscrição manual e `PATCH` de status/nome/reentrada — o `flow` só se edita no builder), usuários e webhooks de saída. Autenticação por `Authorization: Bearer <chave oxk_>` ([api-keys.ts](src/lib/api-keys.ts)); helpers compartilhados em [src/lib/api/](src/lib/api/) cuidam do envelope `{ data }`/`{ error }`, da validação zod v4 e da paginação `limit`/`offset`. Rotas que mutam dados chamam `kickAutomationProcessor()`. Rotas de API não passam pelo `proxy.ts`, então cada uma autentica sozinha.
 
 Webhooks de saída assinam eventos de `automation_events` e entregam por POST assinado (`X-Oxford-Signature: sha256=HMAC_SHA256(segredo, timestamp + "." + corpo)`), com 5 tentativas em backoff. É o caminho de integração com o n8n, junto com os endpoints REST.
+
+## Node do n8n (`n8n-nodes-oxford-crm/`)
+
+Pacote separado, na raiz do repo, com o node comunitário do n8n: **Oxford CRM** (ações, estilo declarativo — `requestDefaults` + `routing`, sem `execute()`) e **Oxford CRM Trigger** (webhook; `webhookMethods` cria/atualiza/remove a assinatura em `/api/v1/webhooks` quando o workflow é ativado, e valida o HMAC de cada entrega). Consome só a API v1 — não importa nada de `src/`, então mudar a API sem mexer no node quebra a integração silenciosamente: ao alterar rota ou payload, conferir `nodes/OxfordCrm/resources/`.
+
+Tem toolchain própria (`@n8n/node-cli`: `npm run build|dev|lint`, Node 22+) e por isso está **excluído do `tsconfig.json` e do `eslint.config.mjs` da raiz** — sem isso o `next build` tentaria compilar arquivos que importam `n8n-workflow`, que não é dependência do app. A Vercel builda da raiz e ignora a pasta.
 
 ## Roadmap direcional (não compromissado — validar escopo com o usuário antes de iniciar)
 
 Ordem provável dos próximos passos, rumo à paridade com ActiveCampaign:
-1. **Node comunitário do n8n** para este CRM, consumindo a API v1 e os webhooks de saída.
-2. **Segmentos dinâmicos** para Listas (regras tipo tag/campo/atividade) — extensão natural de `/contacts/lists`, e viraria também um gatilho de automação ("entrou no segmento").
-3. **Formulários de captura** — landing pages/forms que criam contatos (e disparam automações).
-4. **Relatórios/analytics** — métricas de funil, engajamento de campanhas e desempenho das automações.
-5. **Melhorias do builder** — reordenar passos por drag-and-drop, esperar até um horário do dia, gatilho por inatividade.
+1. **Segmentos dinâmicos** para Listas (regras tipo tag/campo/atividade) — extensão natural de `/contacts/lists`, e viraria também um gatilho de automação ("entrou no segmento").
+2. **Formulários de captura** — landing pages/forms que criam contatos (e disparam automações).
+3. **Relatórios/analytics** — métricas de funil, engajamento de campanhas e desempenho das automações.
+4. **Melhorias do builder** — reordenar passos por drag-and-drop, esperar até um horário do dia, gatilho por inatividade.
 
 Este roadmap é uma referência de direção, não uma spec — cada item precisa da mesma rodada de alinhamento de escopo (como a que gerou o módulo de Contatos) antes de virar código.

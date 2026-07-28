@@ -1,0 +1,40 @@
+{
+  "name": "n8n-nodes-oxford-crm",
+  "version": "0.1.0",
+  "description": "Node do n8n para o Oxford CRM: contatos, listas, tags, negócios, tarefas, automações e gatilhos por webhook.",
+  "license": "MIT",
+  "homepage": "https://github.com/RenanhvBorges/crm/tree/main/n8n-nodes-oxford-crm",
+  "keywords": ["n8n-community-node-package", "n8n", "oxford", "crm"],
+  "author": { "name": "Oxford", "email": "borgesrhvb@gmail.com" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RenanhvBorges/crm.git",
+    "directory": "n8n-nodes-oxford-crm"
+  },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "n8n-node build",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
+  },
+  "files": ["dist"],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "strict": true,
+    "credentials": ["dist/credentials/OxfordCrmApi.credentials.js"],
+    "nodes": [
+      "dist/nodes/OxfordCrm/OxfordCrm.node.js",
+      "dist/nodes/OxfordCrm/OxfordCrmTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "*",
+    "eslint": "9.39.4",
+    "prettier": "3.8.3",
+    "typescript": "5.9.3"
+  },
+  "peerDependencies": { "n8n-workflow": "*" }
+}
