@@ -116,8 +116,25 @@ async function tryEnroll(
   automation: Automation,
   event: AutomationEvent,
 ): Promise<boolean> {
-  const contactId = event.contact_id!;
+  const result = await enrollContact(admin, automation, event.contact_id!, {
+    eventId: event.id,
+    context: event.payload,
+  });
+  return result.enrolled;
+}
 
+export type EnrollResult =
+  | { enrolled: true }
+  | { enrolled: false; reason: "already_active" | "already_enrolled" | "rate_capped" | "error" };
+
+// Inscreve um contato numa automação aplicando as travas anti-loop. Usado pelo
+// consumo de eventos e pelo endpoint de inscrição manual da API.
+export async function enrollContact(
+  admin: Admin,
+  automation: Automation,
+  contactId: string,
+  options: { eventId?: string | null; context?: Json } = {},
+): Promise<EnrollResult> {
   const { data: activeExisting } = await admin
     .from("automation_enrollments")
     .select("id")
@@ -125,7 +142,7 @@ async function tryEnroll(
     .eq("contact_id", contactId)
     .in("status", ["running", "waiting"])
     .limit(1);
-  if (activeExisting?.length) return false;
+  if (activeExisting?.length) return { enrolled: false, reason: "already_active" };
 
   if (!automation.allow_reentry) {
     const { data: anyExisting } = await admin
@@ -134,7 +151,7 @@ async function tryEnroll(
       .eq("automation_id", automation.id)
       .eq("contact_id", contactId)
       .limit(1);
-    if (anyExisting?.length) return false;
+    if (anyExisting?.length) return { enrolled: false, reason: "already_enrolled" };
   }
 
   const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
@@ -148,7 +165,7 @@ async function tryEnroll(
     console.warn(
       `[automations] rate cap: contato ${contactId} já entrou ${recentCount}x na automação ${automation.id} na última hora — possível loop.`,
     );
-    return false;
+    return { enrolled: false, reason: "rate_capped" };
   }
 
   const flow = parseFlow(automation.flow);
@@ -157,17 +174,17 @@ async function tryEnroll(
   const { error } = await admin.from("automation_enrollments").insert({
     automation_id: automation.id,
     contact_id: contactId,
-    event_id: event.id,
-    context: event.payload,
+    event_id: options.eventId ?? null,
+    context: options.context ?? {},
     status: start ? "running" : "completed",
     current_node_id: start?.id ?? null,
     completed_at: start ? null : new Date().toISOString(),
   });
   if (error) {
     console.error(`[automations] falha ao inscrever contato ${contactId}:`, error.message);
-    return false;
+    return { enrolled: false, reason: "error" };
   }
-  return true;
+  return { enrolled: true };
 }
 
 // Claim atômico do enrollment: só um tick avança cada inscrição por vez;
