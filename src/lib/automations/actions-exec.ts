@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json, Tables } from "@/lib/supabase/database.types";
 import { resolvePlaceholdersText } from "@/lib/email-placeholders";
+import { resolveRecipients, sendNextChunk } from "@/lib/email-send";
 import type { FlowNode } from "./flow";
 
 type Admin = SupabaseClient<Database>;
@@ -151,9 +152,83 @@ export async function executeNode(
       return { status: "ok", detail: { key: node.key } };
     }
 
-    case "send_email":
-      // Implementado na fase de e-mail do módulo (campanha de sistema).
-      return { status: "skipped", detail: { reason: "envio de e-mail ainda não habilitado" } };
+    case "send_email": {
+      // Estratégia: cria uma campanha "de sistema" com um único destinatário.
+      // Assim o e-mail herda todo o pipeline existente — rodapé de descadastro,
+      // webhook do Resend, supressões e métricas — sem um caminho de envio novo.
+      if (!contact.email) {
+        return { status: "skipped", detail: { reason: "contato sem e-mail" } };
+      }
+      const { data: suppressed } = await admin
+        .from("email_suppressions")
+        .select("id")
+        .eq("email", contact.email.toLowerCase())
+        .maybeSingle();
+      if (suppressed) {
+        return { status: "skipped", detail: { reason: "e-mail suprimido (descadastro/bounce)" } };
+      }
+
+      const { data: template } = await admin
+        .from("email_templates")
+        .select("subject, content")
+        .eq("id", node.templateId)
+        .maybeSingle();
+      if (!template) return { status: "error", error: "Template de e-mail não existe mais." };
+
+      const { data: fieldDefs } = await admin
+        .from("custom_field_definitions")
+        .select("*")
+        .eq("entity", "contact");
+      const subject = resolvePlaceholdersText(
+        node.subject || template.subject || "",
+        contact,
+        fieldDefs ?? [],
+      );
+      if (!subject.trim()) {
+        return { status: "error", error: "Template sem assunto — defina no template ou no passo." };
+      }
+
+      const { data: campaign, error } = await admin
+        .from("email_campaigns")
+        .insert({
+          name: `[Automação] ${automation.name}`,
+          subject,
+          content: template.content,
+          template_id: node.templateId,
+          audience_type: "contact",
+          audience_contact_id: contact.id,
+          is_system: true,
+          status: "scheduled",
+          scheduled_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (error) return { status: "error", error: error.message };
+
+      // Envio imediato best-effort (mesma ordem do cron de campanhas). Se
+      // falhar — limite diário do Resend, indisponibilidade — a campanha fica
+      // scheduled/sending e o cron de campanhas assume no próximo tick.
+      let deliveredInline = false;
+      try {
+        await admin.from("email_campaigns").update({ status: "sending" }).eq("id", campaign.id);
+        await resolveRecipients(campaign.id);
+        const result = await sendNextChunk(campaign.id);
+        if (result.remaining === 0) {
+          await admin
+            .from("email_campaigns")
+            .update({ status: "sent", sent_at: new Date().toISOString() })
+            .eq("id", campaign.id);
+          deliveredInline = true;
+        }
+      } catch (err) {
+        console.warn(
+          `[automations] envio inline falhou (campanha ${campaign.id}), cron assume:`,
+          err instanceof Error ? err.message : err,
+        );
+      }
+
+      return { status: "ok", detail: { campaign_id: campaign.id, delivered_inline: deliveredInline } };
+    }
 
     case "webhook": {
       try {

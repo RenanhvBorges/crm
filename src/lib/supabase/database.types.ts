@@ -636,6 +636,7 @@ export type Database = {
           from_email: string | null
           from_name: string | null
           id: string
+          is_system: boolean
           name: string
           scheduled_at: string | null
           sent_at: string | null
@@ -655,6 +656,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           id?: string
+          is_system?: boolean
           name: string
           scheduled_at?: string | null
           sent_at?: string | null
@@ -674,6 +676,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           id?: string
+          is_system?: boolean
           name?: string
           scheduled_at?: string | null
           sent_at?: string | null

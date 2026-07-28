@@ -28,7 +28,7 @@ export default async function AutomationsPage() {
       supabase.from("contact_lists").select("id, name"),
       supabase.from("pipeline_stages").select("id, name"),
       supabase.from("pipelines").select("id, name"),
-      supabase.from("email_campaigns").select("id, name"),
+      supabase.from("email_campaigns").select("id, name").eq("is_system", false),
     ]);
 
   const listName = new Map((lists ?? []).map((l) => [l.id, l.name]));

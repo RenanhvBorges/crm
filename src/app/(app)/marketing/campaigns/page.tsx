@@ -26,6 +26,7 @@ export default async function CampaignsPage() {
   const { data: campaigns } = await supabase
     .from("email_campaigns")
     .select("id, name, subject, status, created_at")
+    .eq("is_system", false)
     .order("created_at", { ascending: false });
 
   const { data: recipients } = await supabase

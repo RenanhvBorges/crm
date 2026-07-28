@@ -10,7 +10,7 @@ export default async function NewAutomationPage() {
       supabase.from("contact_lists").select("id, name").order("sort_order"),
       supabase.from("pipelines").select("id, name").order("sort_order"),
       supabase.from("pipeline_stages").select("id, name, pipeline_id").order("sort_order"),
-      supabase.from("email_campaigns").select("id, name").order("created_at", { ascending: false }),
+      supabase.from("email_campaigns").select("id, name").eq("is_system", false).order("created_at", { ascending: false }),
     ]);
 
   return (
