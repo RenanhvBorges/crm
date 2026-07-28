@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 import {
   NO_VALUE_OPERATORS,
   TAG_OPERATORS,
@@ -17,6 +18,7 @@ async function revalidateAfterRuleChange(
 ) {
   const { error } = await supabase.rpc("recalculate_all_contact_scores");
   if (error) throw new Error(error.message);
+  kickAutomationProcessor();
   revalidatePath("/contacts/scoring");
   revalidatePath("/contacts");
 }

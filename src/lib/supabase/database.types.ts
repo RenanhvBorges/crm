@@ -1079,6 +1079,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_automation_events: {
+        Args: { p_limit?: number }
+        Returns: {
+          contact_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+        }[]
+      }
       compute_contact_score: {
         Args: {
           p_company: string

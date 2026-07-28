@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { authenticateApiKey } from "@/lib/api-keys";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 import type { Json } from "@/lib/supabase/database.types";
 
 export async function GET(request: Request) {
@@ -66,5 +67,6 @@ export async function POST(request: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
+  kickAutomationProcessor();
   return Response.json({ data }, { status: 201 });
 }

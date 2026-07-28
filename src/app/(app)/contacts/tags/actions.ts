@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 
 const DEFAULT_COLOR = "#263fa3";
 
@@ -106,6 +107,7 @@ export async function updateTag(id: string, formData: FormData) {
     if (syncError) {
       throw new Error(syncError.message);
     }
+    kickAutomationProcessor();
   }
 
   revalidateTagSurfaces();
@@ -138,5 +140,6 @@ export async function deleteTag(id: string) {
     throw new Error(syncError.message);
   }
 
+  kickAutomationProcessor();
   revalidateTagSurfaces();
 }

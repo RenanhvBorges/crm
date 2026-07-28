@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 
 export async function createTask(formData: FormData) {
   const supabase = await createClient();
@@ -24,6 +25,7 @@ export async function createTask(formData: FormData) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/tasks");
   if (contactId) revalidatePath(`/contacts/${contactId}`);
   if (dealId) revalidatePath("/deals");
@@ -44,6 +46,7 @@ export async function toggleTask(taskId: string, done: boolean) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/tasks");
   revalidatePath("/", "layout");
 }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { kickAutomationProcessor } from "@/lib/automations/kick";
 import type { CustomFieldValues } from "@/lib/custom-fields";
 
 function parseContactFormData(formData: FormData) {
@@ -36,6 +37,7 @@ export async function createContact(formData: FormData) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/contacts");
   redirect(`/contacts/${data.id}`);
 }
@@ -53,6 +55,7 @@ export async function updateContact(contactId: string, formData: FormData) {
     throw new Error(error.message);
   }
 
+  kickAutomationProcessor();
   revalidatePath("/contacts");
   revalidatePath(`/contacts/${contactId}`);
 }
