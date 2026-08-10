@@ -34,6 +34,7 @@ export function TriggerCard({
     stage: (id) => catalogs.stages.find((s) => s.id === id)?.name,
     pipeline: (id) => catalogs.pipelines.find((p) => p.id === id)?.name,
     campaign: (id) => catalogs.campaigns.find((c) => c.id === id)?.name,
+    metaForm: (id) => catalogs.metaForms.find((f) => f.id === id)?.name,
   });
 
   function handleSubmit(formData: FormData) {

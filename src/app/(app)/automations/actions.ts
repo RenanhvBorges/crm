@@ -43,6 +43,11 @@ function parseTriggerFromFormData(formData: FormData) {
       if (campaignId) config.campaignId = campaignId;
       break;
     }
+    case "meta_form": {
+      const formId = String(formData.get("trigger_form_id") ?? "");
+      if (formId) config.formId = formId;
+      break;
+    }
     case "score": {
       const mode = String(formData.get("trigger_score_mode") ?? "any");
       config.mode =

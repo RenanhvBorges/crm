@@ -18,7 +18,7 @@ const STATUS_COLOR: Record<string, string> = {
 export default async function AutomationsPage() {
   const supabase = await createClient();
 
-  const [{ data: automations }, { data: enrollments }, { data: lists }, { data: stages }, { data: pipelines }, { data: campaigns }] =
+  const [{ data: automations }, { data: enrollments }, { data: lists }, { data: stages }, { data: pipelines }, { data: campaigns }, { data: metaForms }] =
     await Promise.all([
       supabase
         .from("automations")
@@ -29,12 +29,14 @@ export default async function AutomationsPage() {
       supabase.from("pipeline_stages").select("id, name"),
       supabase.from("pipelines").select("id, name"),
       supabase.from("email_campaigns").select("id, name").eq("is_system", false),
+      supabase.from("meta_lead_forms").select("form_id, name"),
     ]);
 
   const listName = new Map((lists ?? []).map((l) => [l.id, l.name]));
   const stageName = new Map((stages ?? []).map((s) => [s.id, s.name]));
   const pipelineName = new Map((pipelines ?? []).map((p) => [p.id, p.name]));
   const campaignName = new Map((campaigns ?? []).map((c) => [c.id, c.name]));
+  const metaFormName = new Map((metaForms ?? []).map((f) => [f.form_id, f.name]));
 
   const counts = new Map<string, { active: number; completed: number }>();
   for (const e of enrollments ?? []) {
@@ -88,6 +90,7 @@ export default async function AutomationsPage() {
                         stage: (id) => stageName.get(id),
                         pipeline: (id) => pipelineName.get(id),
                         campaign: (id) => campaignName.get(id),
+                        metaForm: (id) => metaFormName.get(id),
                       })}
                     </p>
                     <p className="mt-1 text-xs text-fg-muted">

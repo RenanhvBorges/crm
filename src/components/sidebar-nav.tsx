@@ -21,6 +21,7 @@ import {
   UserCog,
   Braces,
   Mail,
+  Megaphone,
   Send,
   LayoutTemplate,
   ChartColumn,
@@ -91,6 +92,7 @@ function getNavItems(isDirector: boolean): NavItem[] {
           : []),
         { href: "/settings/api", label: "API", icon: Braces },
         { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
+        { href: "/settings/integrations/meta", label: "Meta Ads", icon: Megaphone },
       ],
     },
   ];

@@ -846,6 +846,169 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_connections: {
+        Row: {
+          created_at: string
+          default_list_id: string | null
+          default_tags: string[]
+          id: string
+          is_active: boolean
+          last_synced_at: string | null
+          page_access_token: string
+          page_id: string
+          page_name: string
+          scopes: string[]
+          webhook_subscribed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          default_list_id?: string | null
+          default_tags?: string[]
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          page_access_token: string
+          page_id: string
+          page_name: string
+          scopes?: string[]
+          webhook_subscribed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          default_list_id?: string | null
+          default_tags?: string[]
+          id?: string
+          is_active?: boolean
+          last_synced_at?: string | null
+          page_access_token?: string
+          page_id?: string
+          page_name?: string
+          scopes?: string[]
+          webhook_subscribed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_connections_default_list_id_fkey"
+            columns: ["default_list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_lead_forms: {
+        Row: {
+          connection_id: string
+          created_at: string
+          field_mappings: Json
+          form_id: string
+          id: string
+          is_enabled: boolean
+          last_polled_at: string | null
+          name: string
+          questions: Json
+          status: string | null
+          tags: string[]
+          target_list_id: string | null
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          field_mappings?: Json
+          form_id: string
+          id?: string
+          is_enabled?: boolean
+          last_polled_at?: string | null
+          name: string
+          questions?: Json
+          status?: string | null
+          tags?: string[]
+          target_list_id?: string | null
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          field_mappings?: Json
+          form_id?: string
+          id?: string
+          is_enabled?: boolean
+          last_polled_at?: string | null
+          name?: string
+          questions?: Json
+          status?: string | null
+          tags?: string[]
+          target_list_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_lead_forms_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "meta_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_lead_forms_target_list_id_fkey"
+            columns: ["target_list_id"]
+            isOneToOne: false
+            referencedRelation: "contact_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_leads: {
+        Row: {
+          attempts: number
+          contact_id: string | null
+          created_at: string
+          created_time: string | null
+          error_message: string | null
+          form_id: string
+          id: string
+          leadgen_id: string
+          page_id: string | null
+          processed_at: string | null
+          raw: Json
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          contact_id?: string | null
+          created_at?: string
+          created_time?: string | null
+          error_message?: string | null
+          form_id: string
+          id?: string
+          leadgen_id: string
+          page_id?: string | null
+          processed_at?: string | null
+          raw?: Json
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          contact_id?: string | null
+          created_at?: string
+          created_time?: string | null
+          error_message?: string | null
+          form_id?: string
+          id?: string
+          leadgen_id?: string
+          page_id?: string | null
+          processed_at?: string | null
+          raw?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_leads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_stages: {
         Row: {
           color: string
@@ -1194,6 +1357,7 @@ export type Database = {
         }
         Returns: number
       }
+      find_contact_by_phone: { Args: { p_phone: string }; Returns: string }
       recalculate_all_contact_scores: { Args: never; Returns: undefined }
       remove_contact_tag: { Args: { tag_name: string }; Returns: undefined }
       rename_contact_tag: {

@@ -13,6 +13,7 @@ export type TriggerCatalogs = {
   pipelines: { id: string; name: string }[];
   stages: { id: string; name: string; pipeline_id: string }[];
   campaigns: { id: string; name: string }[];
+  metaForms: { id: string; name: string }[];
 };
 
 // Select de gatilho + campos de configuração condicionais (inputs `trigger_*`
@@ -153,6 +154,27 @@ export function TriggerConfigFields({
             {catalogs.campaigns.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
+
+      {def?.configKind === "meta_form" ? (
+        <div>
+          <label htmlFor="trigger_form_id" className={labelClass}>
+            Formulário instantâneo (vazio = qualquer formulário)
+          </label>
+          <select
+            id="trigger_form_id"
+            name="trigger_form_id"
+            defaultValue={config.formId ?? ""}
+            className={inputClass}
+          >
+            <option value="">Qualquer formulário</option>
+            {catalogs.metaForms.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
               </option>
             ))}
           </select>

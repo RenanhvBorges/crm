@@ -19,6 +19,7 @@ export default async function AutomationDetailPage({
     { data: pipelines },
     { data: stages },
     { data: campaigns },
+    { data: metaForms },
     { data: templates },
     { data: fields },
     { data: profiles },
@@ -29,6 +30,7 @@ export default async function AutomationDetailPage({
     supabase.from("pipelines").select("id, name").order("sort_order"),
     supabase.from("pipeline_stages").select("id, name, pipeline_id").order("sort_order"),
     supabase.from("email_campaigns").select("id, name").eq("is_system", false).order("created_at", { ascending: false }),
+    supabase.from("meta_lead_forms").select("form_id, name").order("name"),
     supabase.from("email_templates").select("id, name, subject").order("name"),
     supabase
       .from("custom_field_definitions")
@@ -92,6 +94,7 @@ export default async function AutomationDetailPage({
         pipelines: pipelines ?? [],
         stages: stages ?? [],
         campaigns: campaigns ?? [],
+        metaForms: (metaForms ?? []).map((f) => ({ id: f.form_id, name: f.name })),
         templates: templates ?? [],
         fields: fields ?? [],
         profiles: (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name ?? p.email })),

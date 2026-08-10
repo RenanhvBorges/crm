@@ -8,6 +8,7 @@ export type BuilderCatalogs = {
   pipelines: { id: string; name: string }[];
   stages: { id: string; name: string; pipeline_id: string }[];
   campaigns: { id: string; name: string }[];
+  metaForms: { id: string; name: string }[];
   templates: { id: string; name: string; subject: string }[];
   fields: { key: string; label: string }[];
   profiles: { id: string; name: string }[];

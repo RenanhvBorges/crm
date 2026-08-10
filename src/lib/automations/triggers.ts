@@ -17,6 +17,7 @@ export type TriggerType =
   | "task_completed"
   | "email_opened"
   | "email_clicked"
+  | "meta_lead_received"
   | "api_enroll";
 
 // Que tipo de campo de configuração o gatilho exibe no formulário.
@@ -27,7 +28,8 @@ export type TriggerConfigKind =
   | "score"
   | "pipeline"
   | "pipeline_stage"
-  | "campaign";
+  | "campaign"
+  | "meta_form";
 
 export type TriggerDefinition = {
   value: TriggerType;
@@ -122,6 +124,13 @@ export const TRIGGER_TYPES: TriggerDefinition[] = [
     configKind: "campaign",
   },
   {
+    value: "meta_lead_received",
+    label: "Lead do Meta Ads recebido",
+    description:
+      "Dispara quando um lead de formulário instantâneo da Meta entra no CRM (contato criado ou atualizado).",
+    configKind: "meta_form",
+  },
+  {
     value: "api_enroll",
     label: "Inscrição via API",
     description: "Não dispara sozinho: contatos entram via chamada de API (ex: n8n).",
@@ -150,6 +159,7 @@ export const EVENT_TYPES: { value: string; label: string }[] = [
   { value: "task.completed", label: "Tarefa concluída" },
   { value: "email.opened", label: "E-mail aberto" },
   { value: "email.clicked", label: "E-mail clicado" },
+  { value: "meta.lead_received", label: "Lead do Meta Ads recebido" },
 ];
 
 export type TriggerConfig = {
@@ -158,6 +168,7 @@ export type TriggerConfig = {
   pipelineId?: string;
   stageId?: string;
   campaignId?: string;
+  formId?: string;
   mode?: "any" | "crosses_above" | "crosses_below";
   value?: number;
 };
@@ -182,6 +193,7 @@ const EVENT_BY_TRIGGER: Record<TriggerType, string | null> = {
   task_completed: "task.completed",
   email_opened: "email.opened",
   email_clicked: "email.clicked",
+  meta_lead_received: "meta.lead_received",
   api_enroll: null,
 };
 
@@ -225,6 +237,8 @@ export function triggerMatches(
     case "email_opened":
     case "email_clicked":
       return !config.campaignId || config.campaignId === payload.campaign_id;
+    case "meta_lead_received":
+      return !config.formId || config.formId === payload.form_id;
     default:
       return true;
   }
@@ -240,6 +254,7 @@ export function describeTrigger(
     stage?: (id: string) => string | undefined;
     pipeline?: (id: string) => string | undefined;
     campaign?: (id: string) => string | undefined;
+    metaForm?: (id: string) => string | undefined;
   },
 ): string {
   const def = triggerDefinition(triggerType);
@@ -273,6 +288,11 @@ export function describeTrigger(
       if (!config.campaignId) return `${def.label} (qualquer campanha)`;
       const name = resolve?.campaign?.(config.campaignId);
       return `${def.label} na campanha ${name ?? "selecionada"}`;
+    }
+    case "meta_form": {
+      if (!config.formId) return `${def.label} (qualquer formulário)`;
+      const name = resolve?.metaForm?.(config.formId);
+      return `${def.label} no formulário ${name ?? "selecionado"}`;
     }
     default:
       return def.label;
