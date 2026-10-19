@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EMPTY_EMAIL_DOCUMENT, emailDocumentSchema, type EmailDocument } from "@/lib/email-blocks";
 import type { Json } from "@/lib/supabase/database.types";
+import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
 
 export async function createTemplate(formData: FormData) {
   const supabase = await createClient();
@@ -84,4 +85,24 @@ export async function deleteTemplate(id: string) {
 
   revalidatePath("/marketing/templates");
   redirect("/marketing/templates");
+}
+
+export async function bulkDeleteTemplates(ids: string[]): Promise<BulkResult> {
+  return runBulk(async () => {
+    const templateIds = parseIds(ids);
+    const supabase = await createClient();
+
+    let deleted = 0;
+    for (const part of chunk(templateIds)) {
+      const { error, count } = await supabase
+        .from("email_templates")
+        .delete({ count: "exact" })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      deleted += count ?? 0;
+    }
+
+    revalidatePath("/marketing/templates");
+    return `${pluralize(deleted, "template excluído", "templates excluídos")}.`;
+  });
 }

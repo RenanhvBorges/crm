@@ -35,6 +35,8 @@ export default async function ListDetailPage({
     { data: fieldDefs },
     { data: tiers },
     { data: pref },
+    { data: tagCatalog },
+    { data: lists },
   ] = await Promise.all([
     supabase.from("contact_lists").select("*").eq("id", id).single(),
     supabase
@@ -56,6 +58,8 @@ export default async function ListDetailPage({
       .select("config")
       .eq("view_key", viewKey)
       .maybeSingle(),
+    supabase.from("tags").select("name, color").order("name"),
+    supabase.from("contact_lists").select("id, name").order("sort_order"),
   ]);
 
   if (!list) {
@@ -166,6 +170,7 @@ export default async function ListDetailPage({
         saveAction={saveViewPreferences}
         removeAction={removeMember}
         removeConfirmMessage="Remover este contato da lista?"
+        bulk={{ tagCatalog: tagCatalog ?? [], lists: lists ?? [], currentListId: list.id }}
       />
     </div>
   );

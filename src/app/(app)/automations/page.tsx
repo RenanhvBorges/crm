@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { describeTrigger } from "@/lib/automations/triggers";
+import { SelectableList } from "@/components/bulk/selectable-list";
 import { AutomationRowActions } from "./automation-row-actions";
+import { bulkActivateAutomations, bulkDeleteAutomations, bulkPauseAutomations } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Rascunho",
@@ -61,50 +63,59 @@ export default async function AutomationsPage() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border-1 bg-oxford-white">
-        {automations?.length ? (
-          <ul className="divide-y divide-border-1">
-            {automations.map((a) => {
-              const stat = counts.get(a.id) ?? { active: 0, completed: 0 };
-              return (
-                <li key={a.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/automations/${a.id}`}
-                        className="truncate text-sm font-medium text-fg-brand hover:underline"
-                      >
-                        {a.name}
-                      </Link>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[a.status] ?? ""}`}
-                      >
-                        {STATUS_LABEL[a.status] ?? a.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-fg-3">
-                      {describeTrigger(a.trigger_type, a.trigger_config, {
-                        list: (id) => listName.get(id),
-                        stage: (id) => stageName.get(id),
-                        pipeline: (id) => pipelineName.get(id),
-                        campaign: (id) => campaignName.get(id),
-                      })}
-                    </p>
-                    <p className="mt-1 text-xs text-fg-muted">
-                      {stat.active} em andamento · {stat.completed} concluídas
-                    </p>
+      <SelectableList
+        singular="automação"
+        plural="automações"
+        emptyMessage="Nenhuma automação criada ainda."
+        actions={[
+          { key: "activate", label: "Ativar", run: bulkActivateAutomations },
+          { key: "pause", label: "Pausar", run: bulkPauseAutomations },
+          {
+            key: "delete",
+            label: "Excluir",
+            danger: true,
+            run: bulkDeleteAutomations,
+            confirm: "Excluir {count} automação(ões)? Inscrições em andamento serão perdidas.",
+          },
+        ]}
+        rows={(automations ?? []).map((a) => {
+          const stat = counts.get(a.id) ?? { active: 0, completed: 0 };
+          return {
+            id: a.id,
+            content: (
+              <div className="flex items-center justify-between gap-4 px-4 py-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/automations/${a.id}`}
+                      className="truncate text-sm font-medium text-fg-brand hover:underline"
+                    >
+                      {a.name}
+                    </Link>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[a.status] ?? ""}`}
+                    >
+                      {STATUS_LABEL[a.status] ?? a.status}
+                    </span>
                   </div>
-                  <AutomationRowActions id={a.id} status={a.status} />
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted">
-            Nenhuma automação criada ainda.
-          </p>
-        )}
-      </div>
+                  <p className="text-xs text-fg-3">
+                    {describeTrigger(a.trigger_type, a.trigger_config, {
+                      list: (id) => listName.get(id),
+                      stage: (id) => stageName.get(id),
+                      pipeline: (id) => pipelineName.get(id),
+                      campaign: (id) => campaignName.get(id),
+                    })}
+                  </p>
+                  <p className="mt-1 text-xs text-fg-muted">
+                    {stat.active} em andamento · {stat.completed} concluídas
+                  </p>
+                </div>
+                <AutomationRowActions id={a.id} status={a.status} />
+              </div>
+            ),
+          };
+        })}
+      />
     </div>
   );
 }

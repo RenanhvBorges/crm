@@ -48,7 +48,7 @@ export function TagRow({
 
   if (editing) {
     return (
-      <li className="px-4 py-3">
+      <div className="px-4 py-3">
         <div className="flex items-center gap-2">
           <input
             type="color"
@@ -83,12 +83,12 @@ export function TagRow({
           </button>
         </div>
         {error ? <p className="mt-1 text-xs text-danger">{error}</p> : null}
-      </li>
+      </div>
     );
   }
 
   return (
-    <li className="flex items-center justify-between px-4 py-3">
+    <div className="flex items-center justify-between px-4 py-3">
       <span className="flex items-center gap-2">
         <span
           className="h-4 w-4 shrink-0 rounded-full"
@@ -114,6 +114,6 @@ export function TagRow({
           confirmMessage="Excluir esta tag? Ela será removida de todos os contatos."
         />
       </div>
-    </li>
+    </div>
   );
 }

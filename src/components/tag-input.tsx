@@ -12,11 +12,14 @@ export function TagInput({
   onChange,
   catalog,
   onCreate,
+  dropUp = false,
 }: {
   value: string[];
   onChange: (tags: string[]) => void;
   catalog: CatalogTag[];
   onCreate?: (name: string) => Promise<CatalogTag>;
+  // Abre as sugestões acima do campo (para usar perto da borda inferior da tela).
+  dropUp?: boolean;
 }) {
   const [localCatalog, setLocalCatalog] = useState<CatalogTag[]>(catalog);
   const [query, setQuery] = useState("");
@@ -126,12 +129,17 @@ export function TagInput({
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={onKeyDown}
           placeholder={value.length ? "" : "Adicionar tag..."}
+          aria-label="Adicionar tag"
           className="min-w-[8rem] flex-1 bg-transparent px-1 py-0.5 text-sm outline-none"
         />
       </div>
 
       {open && (suggestions.length > 0 || canCreate) ? (
-        <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-border-1 bg-oxford-white shadow-md">
+        <ul
+          className={`absolute z-10 w-full overflow-hidden rounded-md border border-border-1 bg-oxford-white text-fg-1 shadow-md ${
+            dropUp ? "bottom-full mb-1" : "mt-1"
+          }`}
+        >
           {suggestions.map((t) => (
             <li key={t.name}>
               <button

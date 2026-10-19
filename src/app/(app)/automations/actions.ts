@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { flowSchema, parseFlow, validateFlow, type Flow } from "@/lib/automations/flow";
 import { triggerDefinition, type TriggerConfig } from "@/lib/automations/triggers";
 import type { Json } from "@/lib/supabase/database.types";
+import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
 
 // Monta o trigger_config a partir dos campos condicionais do formulário,
 // gravando só o que faz sentido para o tipo de gatilho escolhido.
@@ -167,4 +168,90 @@ export async function cancelEnrollment(enrollmentId: string) {
     .eq("id", enrollmentId)
     .in("status", ["running", "waiting"]);
   if (error) throw new Error(error.message);
+}
+
+// ---------------------------------------------------------------------------
+// Ações em massa
+// ---------------------------------------------------------------------------
+
+// Ativar valida o fluxo de cada automação (como no botão individual); as que
+// não passam ficam como estavam e são listadas no resultado. Pausar só atinge
+// as que estão ativas, para não transformar rascunhos em pausadas.
+async function bulkSetAutomationStatus(
+  ids: string[],
+  status: "active" | "paused",
+): Promise<BulkResult> {
+  return runBulk(async () => {
+    const automationIds = parseIds(ids);
+    if (status !== "active" && status !== "paused") throw new Error("Status inválido.");
+    const supabase = await createClient();
+
+    const current: { id: string; name: string; status: string }[] = [];
+    for (const part of chunk(automationIds)) {
+      const { data, error } = await supabase
+        .from("automations")
+        .select("id, name, status")
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      current.push(...(data ?? []));
+    }
+
+    const targets = current.filter((a) =>
+      status === "active" ? a.status !== "active" : a.status === "active",
+    );
+
+    let updated = 0;
+    const failures: string[] = [];
+    for (const automation of targets) {
+      try {
+        await setAutomationStatus(automation.id, status);
+        updated += 1;
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : "erro desconhecido";
+        failures.push(`"${automation.name}" (${reason})`);
+      }
+    }
+
+    const done =
+      status === "active"
+        ? pluralize(updated, "automação ativada", "automações ativadas")
+        : pluralize(updated, "automação pausada", "automações pausadas");
+    if (failures.length) {
+      const shown = failures.slice(0, 3).join("; ");
+      const more = failures.length > 3 ? ` e mais ${failures.length - 3}` : "";
+      throw new Error(`${done}. Não foi possível alterar: ${shown}${more}.`);
+    }
+    const untouched = automationIds.length - targets.length;
+    return untouched > 0
+      ? `${done}. ${pluralize(untouched, "já estava no estado pedido", "já estavam no estado pedido")}.`
+      : `${done}.`;
+  });
+}
+
+export async function bulkActivateAutomations(ids: string[]): Promise<BulkResult> {
+  return bulkSetAutomationStatus(ids, "active");
+}
+
+export async function bulkPauseAutomations(ids: string[]): Promise<BulkResult> {
+  return bulkSetAutomationStatus(ids, "paused");
+}
+
+export async function bulkDeleteAutomations(ids: string[]): Promise<BulkResult> {
+  return runBulk(async () => {
+    const automationIds = parseIds(ids);
+    const supabase = await createClient();
+
+    let deleted = 0;
+    for (const part of chunk(automationIds)) {
+      const { error, count } = await supabase
+        .from("automations")
+        .delete({ count: "exact" })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      deleted += count ?? 0;
+    }
+
+    revalidatePath("/automations");
+    return `${pluralize(deleted, "automação excluída", "automações excluídas")}.`;
+  });
 }

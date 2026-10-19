@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { kickAutomationProcessor } from "@/lib/automations/kick";
+import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
 
 export async function createTask(formData: FormData) {
   const supabase = await createClient();
@@ -98,4 +99,76 @@ export async function updateTaskContact(taskId: string, contactId: string | null
 
 export async function updateTaskDeal(taskId: string, dealId: string | null) {
   return updateTaskField(taskId, "deal_id", dealId);
+}
+
+// ---------------------------------------------------------------------------
+// Ações em massa
+// ---------------------------------------------------------------------------
+
+export async function bulkSetTasksDone(ids: string[], done: boolean): Promise<BulkResult> {
+  return runBulk(async () => {
+    const taskIds = parseIds(ids);
+    const supabase = await createClient();
+
+    for (const part of chunk(taskIds)) {
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          status: done ? "done" : "pending",
+          completed_at: done ? new Date().toISOString() : null,
+        })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+    }
+
+    kickAutomationProcessor();
+    revalidatePath("/tasks");
+    revalidatePath("/", "layout");
+    return done
+      ? `${pluralize(taskIds.length, "tarefa concluída", "tarefas concluídas")}.`
+      : `${pluralize(taskIds.length, "tarefa reaberta", "tarefas reabertas")}.`;
+  });
+}
+
+export async function bulkReassignTasks(
+  ids: string[],
+  assignedTo: string | null,
+): Promise<BulkResult> {
+  return runBulk(async () => {
+    const taskIds = parseIds(ids);
+    const [assignee] = assignedTo ? parseIds([assignedTo]) : [null];
+    const supabase = await createClient();
+
+    for (const part of chunk(taskIds)) {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ assigned_to: assignee })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+    }
+
+    revalidatePath("/tasks");
+    return `${pluralize(taskIds.length, "tarefa reatribuída", "tarefas reatribuídas")}.`;
+  });
+}
+
+export async function bulkDeleteTasks(ids: string[]): Promise<BulkResult> {
+  return runBulk(async () => {
+    const taskIds = parseIds(ids);
+    const supabase = await createClient();
+
+    let deleted = 0;
+    for (const part of chunk(taskIds)) {
+      const { error, count } = await supabase
+        .from("tasks")
+        .delete({ count: "exact" })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      deleted += count ?? 0;
+    }
+
+    revalidatePath("/tasks");
+    revalidatePath("/", "layout");
+    return `${pluralize(deleted, "tarefa excluída", "tarefas excluídas")}.`;
+  });
 }
