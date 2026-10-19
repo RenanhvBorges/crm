@@ -138,7 +138,9 @@ export function ContactForm({
           />
         </Field>
         <div className="col-span-2">
-          <Field label="Tags">
+          {/* Não pode ser <label>: o label repassa o clique ao primeiro botão
+              dentro dele (o "×" da tag recém-adicionada), desfazendo a seleção. */}
+          <Field label="Tags" as="div">
             <TagInput
               value={tags}
               onChange={setTags}
@@ -184,17 +186,19 @@ export function ContactForm({
 function Field({
   label,
   error,
+  as: Wrapper = "label",
   children,
 }: {
   label: string;
   error?: string;
+  as?: "label" | "div";
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
+    <Wrapper className="block">
       <span className="mb-1 block text-sm font-medium text-fg-2">{label}</span>
       {children}
       {error ? <span className="mt-1 block text-xs text-danger">{error}</span> : null}
-    </label>
+    </Wrapper>
   );
 }

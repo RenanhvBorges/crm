@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { EMPTY_EMAIL_DOCUMENT, emailDocumentSchema, type EmailDocument } from "@/lib/email-blocks";
 import type { Json } from "@/lib/supabase/database.types";
+import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
 
 function parseAudience(formData: FormData) {
   const audienceType = String(formData.get("audience_type") ?? "");
@@ -198,4 +199,40 @@ export async function deleteCampaign(id: string) {
 
   revalidatePath("/marketing/campaigns");
   redirect("/marketing/campaigns");
+}
+
+// Exclusão em massa: campanhas em envio são preservadas (mesma regra do botão individual).
+export async function bulkDeleteCampaigns(ids: string[]): Promise<BulkResult> {
+  return runBulk(async () => {
+    const campaignIds = parseIds(ids);
+    const supabase = await createClient();
+
+    const deletable: string[] = [];
+    for (const part of chunk(campaignIds)) {
+      const { data, error } = await supabase
+        .from("email_campaigns")
+        .select("id, status")
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      for (const c of data ?? []) {
+        if (c.status !== "sending") deletable.push(c.id);
+      }
+    }
+
+    let deleted = 0;
+    for (const part of chunk(deletable)) {
+      const { error, count } = await supabase
+        .from("email_campaigns")
+        .delete({ count: "exact" })
+        .in("id", part);
+      if (error) throw new Error(error.message);
+      deleted += count ?? 0;
+    }
+
+    revalidatePath("/marketing/campaigns");
+    const skipped = campaignIds.length - deleted;
+    return skipped > 0
+      ? `${pluralize(deleted, "campanha excluída", "campanhas excluídas")}. ${pluralize(skipped, "não pôde ser excluída (em envio ou inexistente)", "não puderam ser excluídas (em envio ou inexistentes)")}.`
+      : `${pluralize(deleted, "campanha excluída", "campanhas excluídas")}.`;
+  });
 }

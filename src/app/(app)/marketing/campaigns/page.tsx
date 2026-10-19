@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteFieldButton } from "@/components/delete-field-button";
-import { deleteCampaign } from "./actions";
+import { SelectableList } from "@/components/bulk/selectable-list";
+import { bulkDeleteCampaigns, deleteCampaign } from "./actions";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Rascunho",
@@ -59,49 +60,56 @@ export default async function CampaignsPage() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border-1 bg-oxford-white">
-        {campaigns?.length ? (
-          <ul className="divide-y divide-border-1">
-            {campaigns.map((c) => {
-              const stats = statsByCampaign.get(c.id) ?? { sent: 0, opened: 0, clicked: 0 };
-              return (
-                <li key={c.id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <Link
-                      href={`/marketing/campaigns/${c.id}`}
-                      className="text-sm font-medium text-fg-brand hover:underline"
-                    >
-                      {c.name}
-                    </Link>
-                    <p className="text-xs text-fg-3">{c.subject}</p>
-                    {stats.sent > 0 ? (
-                      <p className="mt-1 text-xs text-fg-muted">
-                        {stats.sent} enviados · {stats.opened} aberturas · {stats.clicked} cliques
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[c.status] ?? ""}`}
-                    >
-                      {STATUS_LABEL[c.status] ?? c.status}
-                    </span>
-                    <DeleteFieldButton
-                      fieldId={c.id}
-                      deleteAction={deleteCampaign}
-                      confirmMessage="Excluir esta campanha?"
-                    />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted">
-            Nenhuma campanha criada ainda.
-          </p>
-        )}
-      </div>
+      <SelectableList
+        singular="campanha"
+        plural="campanhas"
+        emptyMessage="Nenhuma campanha criada ainda."
+        actions={[
+          {
+            key: "delete",
+            label: "Excluir",
+            danger: true,
+            run: bulkDeleteCampaigns,
+            confirm: "Excluir {count} campanha(s)? Campanhas em envio são mantidas.",
+          },
+        ]}
+        rows={(campaigns ?? []).map((c) => {
+          const stats = statsByCampaign.get(c.id) ?? { sent: 0, opened: 0, clicked: 0 };
+          return {
+            id: c.id,
+            content: (
+              <div className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <Link
+                    href={`/marketing/campaigns/${c.id}`}
+                    className="text-sm font-medium text-fg-brand hover:underline"
+                  >
+                    {c.name}
+                  </Link>
+                  <p className="text-xs text-fg-3">{c.subject}</p>
+                  {stats.sent > 0 ? (
+                    <p className="mt-1 text-xs text-fg-muted">
+                      {stats.sent} enviados · {stats.opened} aberturas · {stats.clicked} cliques
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${STATUS_COLOR[c.status] ?? ""}`}
+                  >
+                    {STATUS_LABEL[c.status] ?? c.status}
+                  </span>
+                  <DeleteFieldButton
+                    fieldId={c.id}
+                    deleteAction={deleteCampaign}
+                    confirmMessage="Excluir esta campanha?"
+                  />
+                </div>
+              </div>
+            ),
+          };
+        })}
+      />
     </div>
   );
 }

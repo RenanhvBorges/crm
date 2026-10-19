@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DealKanbanBoard } from "@/components/deal-kanban-board";
 import { DealQuickAddForm } from "@/components/deal-quick-add-form";
+import { DealsViewTabs } from "@/components/deals-view-tabs";
 
 export default async function DealsPage({
   searchParams,
@@ -49,6 +50,7 @@ export default async function DealsPage({
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-2xl">Negócios</h1>
+          <DealsViewTabs active="open" />
           {pipelines && pipelines.length > 1 ? (
             <div className="mt-2 flex gap-2">
               {pipelines.map((p) => (

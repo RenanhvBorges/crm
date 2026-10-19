@@ -26,6 +26,7 @@ import {
   ChartColumn,
   Workflow,
   Webhook,
+  Trophy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -58,6 +59,7 @@ function getNavItems(isDirector: boolean): NavItem[] {
       icon: KanbanSquare,
       children: [
         { href: "/deals", label: "Funil", icon: KanbanSquare },
+        { href: "/deals/closed", label: "Ganhos e perdidos", icon: Trophy },
         { href: "/deals/fields", label: "Campos", icon: SlidersHorizontal },
         { href: "/deals/pipelines", label: "Configurações de funil", icon: GitBranch },
       ],

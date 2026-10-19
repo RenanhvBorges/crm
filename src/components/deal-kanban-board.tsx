@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,10 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { moveDealStage } from "@/app/(app)/deals/actions";
+import { SelectCheckbox } from "@/components/bulk/select-checkbox";
+import { useSelection } from "@/components/bulk/use-selection";
+import { useBulkRunner } from "@/components/bulk/bulk-bar";
+import { DealsBulkBar } from "@/components/bulk/deals-bulk-bar";
 
 export type KanbanStage = {
   id: string;
@@ -52,6 +56,10 @@ export function DealKanbanBoard({
     setDeals(initialDeals);
   }
   const [, startTransition] = useTransition();
+
+  const dealIds = useMemo(() => deals.map((d) => d.id), [deals]);
+  const selection = useSelection(dealIds);
+  const runner = useBulkRunner(selection.clear);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -100,9 +108,21 @@ export function DealKanbanBoard({
           const stageTotal = stageDeals.reduce((sum, d) => sum + d.value, 0);
 
           return (
-            <StageColumn key={stage.id} stage={stage} count={stageDeals.length} total={stageTotal}>
+            <StageColumn
+              key={stage.id}
+              stage={stage}
+              count={stageDeals.length}
+              total={stageTotal}
+              columnIds={stageDeals.map((d) => d.id)}
+              selection={selection}
+            >
               {stageDeals.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
+                <DealCard
+                  key={deal.id}
+                  deal={deal}
+                  selected={selection.isSelected(deal.id)}
+                  onToggleSelect={() => selection.toggle(deal.id)}
+                />
               ))}
             </StageColumn>
           );
@@ -112,6 +132,14 @@ export function DealKanbanBoard({
       <DragOverlay>
         {activeDeal ? <DealCard deal={activeDeal} isOverlay /> : null}
       </DragOverlay>
+
+      <DealsBulkBar
+        ids={selection.selectedIds}
+        stages={stages}
+        hideStatuses={["open"]}
+        runner={runner}
+        onClear={selection.clear}
+      />
     </DndContext>
   );
 }
@@ -120,14 +148,20 @@ function StageColumn({
   stage,
   count,
   total,
+  columnIds,
+  selection,
   children,
 }: {
   stage: KanbanStage;
   count: number;
   total: number;
+  columnIds: string[];
+  selection: ReturnType<typeof useSelection>;
   children: React.ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  const selectedInColumn = columnIds.filter((id) => selection.isSelected(id)).length;
+  const allInColumn = columnIds.length > 0 && selectedInColumn === columnIds.length;
 
   return (
     <div
@@ -142,7 +176,15 @@ function StageColumn({
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: stage.color }}
           />
-          <h3 className="text-sm font-semibold text-fg-1">{stage.name}</h3>
+          <h3 className="flex-1 text-sm font-semibold text-fg-1">{stage.name}</h3>
+          {columnIds.length ? (
+            <SelectCheckbox
+              checked={allInColumn}
+              indeterminate={selectedInColumn > 0 && !allInColumn}
+              onChange={() => selection.setMany(columnIds, !allInColumn)}
+              label={`Selecionar todos os negócios de ${stage.name}`}
+            />
+          ) : null}
         </div>
         <p className="mt-1 text-xs text-fg-3">
           {count} {count === 1 ? "negócio" : "negócios"} · {currency.format(total)}
@@ -153,7 +195,17 @@ function StageColumn({
   );
 }
 
-function DealCard({ deal, isOverlay }: { deal: KanbanDeal; isOverlay?: boolean }) {
+function DealCard({
+  deal,
+  isOverlay,
+  selected = false,
+  onToggleSelect,
+}: {
+  deal: KanbanDeal;
+  isOverlay?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
@@ -184,11 +236,28 @@ function DealCard({ deal, isOverlay }: { deal: KanbanDeal; isOverlay?: boolean }
         const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
         if (moved < 6) router.push(`/deals/${deal.id}`);
       }}
-      className={`cursor-pointer rounded-md border border-border-1 bg-oxford-white p-3 shadow-sm transition-colors hover:border-border-brand active:cursor-grabbing ${
-        isDragging && !isOverlay ? "opacity-40" : ""
-      } ${isOverlay ? "rotate-2 shadow-lg" : ""}`}
+      className={`cursor-pointer rounded-md border bg-oxford-white p-3 shadow-sm transition-colors hover:border-border-brand active:cursor-grabbing ${
+        selected ? "border-border-brand bg-oxford-blue-50" : "border-border-1"
+      } ${isDragging && !isOverlay ? "opacity-40" : ""} ${isOverlay ? "rotate-2 shadow-lg" : ""}`}
     >
-      <p className="text-sm font-medium text-fg-1">{deal.title}</p>
+      <div className="flex items-start gap-2">
+        <p className="flex-1 text-sm font-medium text-fg-1">{deal.title}</p>
+        {onToggleSelect ? (
+          // Pointer events não podem chegar ao card: senão o clique inicia um
+          // arrasto ou navega para o detalhe do negócio.
+          <span
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SelectCheckbox
+              checked={selected}
+              onChange={onToggleSelect}
+              label={`Selecionar ${deal.title}`}
+            />
+          </span>
+        ) : null}
+      </div>
       <p className="mt-1 text-sm text-fg-accent">{currency.format(deal.value)}</p>
       {deal.contact ? (
         <Link

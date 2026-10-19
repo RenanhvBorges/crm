@@ -5,6 +5,10 @@ import Link from "next/link";
 import { Columns3, Filter, Plus, X } from "lucide-react";
 import { ScoreBadge } from "@/components/score-badge";
 import { DeleteFieldButton } from "@/components/delete-field-button";
+import { SelectCheckbox } from "@/components/bulk/select-checkbox";
+import { useSelection } from "@/components/bulk/use-selection";
+import { useBulkRunner } from "@/components/bulk/bulk-bar";
+import { ContactsBulkBar, type ContactsBulkConfig } from "@/components/bulk/contacts-bulk-bar";
 import type { ScoringTier } from "@/lib/scoring";
 import {
   REQUIRED_COLUMN_KEY,
@@ -34,6 +38,7 @@ export function ContactsTable({
   saveAction,
   removeAction,
   removeConfirmMessage,
+  bulk,
 }: {
   viewKey: string;
   contacts: ContactRow[];
@@ -44,6 +49,8 @@ export function ContactsTable({
   // Ação opcional de remover a linha (ex.: tirar contato de uma lista).
   removeAction?: (contactId: string) => Promise<void>;
   removeConfirmMessage?: string;
+  // Habilita seleção de linhas e ações em massa.
+  bulk?: ContactsBulkConfig;
 }) {
   const colsByKey = useMemo(() => columnMap(allColumns), [allColumns]);
   const [config, setConfig] = useState<ViewConfig>(() => normalizeConfig(initialConfig, allColumns));
@@ -80,6 +87,16 @@ export function ContactsTable({
   const filteredContacts = useMemo(
     () => contacts.filter((c) => contactMatchesFilters(c, activeFilters, colsByKey)),
     [contacts, activeFilters, colsByKey],
+  );
+
+  // Seleção sobre as linhas visíveis (já filtradas): "selecionar todos" nunca
+  // pega contatos escondidos por um filtro.
+  const filteredIds = useMemo(() => filteredContacts.map((c) => c.id), [filteredContacts]);
+  const selection = useSelection(filteredIds);
+  const runner = useBulkRunner(selection.clear);
+  const selectedContacts = useMemo(
+    () => filteredContacts.filter((c) => selection.selected.has(c.id)),
+    [filteredContacts, selection.selected],
   );
 
   function toggleColumn(key: string) {
@@ -141,6 +158,16 @@ export function ContactsTable({
         <table className="w-full text-sm">
           <thead className="border-b border-border-1 bg-bg-surface-2 text-left text-xs uppercase tracking-wide text-fg-3">
             <tr>
+              {bulk ? (
+                <th className="w-10 px-4 py-3">
+                  <SelectCheckbox
+                    checked={selection.allSelected}
+                    indeterminate={selection.someSelected}
+                    onChange={selection.toggleAll}
+                    label="Selecionar todos os contatos"
+                  />
+                </th>
+              ) : null}
               {visibleColumns.map((col) => (
                 <th key={col.key} className="px-4 py-3 font-medium whitespace-nowrap">
                   {col.label}
@@ -151,7 +178,21 @@ export function ContactsTable({
           </thead>
           <tbody>
             {filteredContacts.map((contact) => (
-              <tr key={contact.id} className="border-b border-border-1 last:border-0">
+              <tr
+                key={contact.id}
+                className={`border-b border-border-1 last:border-0 ${
+                  selection.isSelected(contact.id) ? "bg-oxford-blue-50" : ""
+                }`}
+              >
+                {bulk ? (
+                  <td className="w-10 px-4 py-3 align-top">
+                    <SelectCheckbox
+                      checked={selection.isSelected(contact.id)}
+                      onChange={() => selection.toggle(contact.id)}
+                      label={`Selecionar ${contact.name}`}
+                    />
+                  </td>
+                ) : null}
                 {visibleColumns.map((col) => (
                   <td key={col.key} className="px-4 py-3 align-top">
                     <Cell contact={contact} col={col} tiers={tiers} />
@@ -171,7 +212,10 @@ export function ContactsTable({
             {!filteredContacts.length ? (
               <tr>
                 <td
-                  colSpan={Math.max(visibleColumns.length + (removeAction ? 1 : 0), 1)}
+                  colSpan={Math.max(
+                    visibleColumns.length + (removeAction ? 1 : 0) + (bulk ? 1 : 0),
+                    1,
+                  )}
                   className="px-4 py-8 text-center text-fg-muted"
                 >
                   {contacts.length
@@ -183,6 +227,16 @@ export function ContactsTable({
           </tbody>
         </table>
       </div>
+
+      {bulk ? (
+        <ContactsBulkBar
+          selected={selectedContacts}
+          visibleColumns={visibleColumns}
+          config={bulk}
+          runner={runner}
+          onClear={selection.clear}
+        />
+      ) : null}
     </div>
   );
 }

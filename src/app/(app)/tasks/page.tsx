@@ -113,6 +113,7 @@ export default async function TasksPage({
           profiles={profiles ?? []}
           contacts={contacts ?? []}
           deals={deals ?? []}
+          bulk
         />
       </div>
     </div>

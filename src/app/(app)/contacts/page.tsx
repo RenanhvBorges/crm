@@ -31,21 +31,29 @@ export default async function ContactsPage({
     );
   }
 
-  const [{ data: contacts }, { data: fieldDefs }, { data: tiers }, { data: pref }] =
-    await Promise.all([
-      query,
-      supabase
-        .from("custom_field_definitions")
-        .select("key, label, field_type")
-        .eq("entity", "contact")
-        .order("sort_order"),
-      supabase.from("scoring_tiers").select("*").order("min_score"),
-      supabase
-        .from("contact_view_preferences")
-        .select("config")
-        .eq("view_key", VIEW_KEY)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: contacts },
+    { data: fieldDefs },
+    { data: tiers },
+    { data: pref },
+    { data: tagCatalog },
+    { data: lists },
+  ] = await Promise.all([
+    query,
+    supabase
+      .from("custom_field_definitions")
+      .select("key, label, field_type")
+      .eq("entity", "contact")
+      .order("sort_order"),
+    supabase.from("scoring_tiers").select("*").order("min_score"),
+    supabase
+      .from("contact_view_preferences")
+      .select("config")
+      .eq("view_key", VIEW_KEY)
+      .maybeSingle(),
+    supabase.from("tags").select("name, color").order("name"),
+    supabase.from("contact_lists").select("id, name").order("sort_order"),
+  ]);
 
   const allColumns = availableColumns(fieldDefs ?? []);
   const rows: ContactRow[] = (contacts ?? []).map((c) => ({
@@ -95,6 +103,7 @@ export default async function ContactsPage({
         tiers={tiers ?? []}
         initialConfig={initialConfig}
         saveAction={saveViewPreferences}
+        bulk={{ tagCatalog: tagCatalog ?? [], lists: lists ?? [] }}
       />
     </div>
   );

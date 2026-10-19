@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { List } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createList, deleteList } from "./actions";
+import { bulkDeleteLists, createList, deleteList } from "./actions";
 import { DeleteFieldButton } from "@/components/delete-field-button";
+import { SelectableList } from "@/components/bulk/selectable-list";
 
 export default async function ContactListsPage() {
   const supabase = await createClient();
@@ -22,22 +23,28 @@ export default async function ContactListsPage() {
         Agrupe contatos em listas. Os membros são adicionados manualmente.
       </p>
 
-      <div className="mb-6 rounded-lg border border-border-1 bg-oxford-white">
-        {lists?.length ? (
-          <ul className="divide-y divide-border-1">
-            {lists.map((list) => {
-              const count = memberCount(list);
-              return (
-                <li
-                  key={list.id}
-                  className="flex items-center justify-between px-4 py-3"
-                >
+      <div className="mb-6">
+        <SelectableList
+          singular="lista"
+          plural="listas"
+          emptyMessage="Nenhuma lista criada ainda."
+          actions={[
+            {
+              key: "delete",
+              label: "Excluir",
+              danger: true,
+              run: bulkDeleteLists,
+              confirm: "Excluir {count} lista(s)? Os contatos não são apagados.",
+            },
+          ]}
+          rows={(lists ?? []).map((list) => {
+            const count = memberCount(list);
+            return {
+              id: list.id,
+              content: (
+                <div className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-start gap-3">
-                    <List
-                      size={18}
-                      strokeWidth={1.5}
-                      className="mt-0.5 shrink-0 text-fg-3"
-                    />
+                    <List size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-fg-3" />
                     <div>
                       <Link
                         href={`/contacts/lists/${list.id}`}
@@ -56,15 +63,11 @@ export default async function ContactListsPage() {
                     deleteAction={deleteList}
                     confirmMessage="Excluir esta lista? Os contatos não são apagados."
                   />
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted">
-            Nenhuma lista criada ainda.
-          </p>
-        )}
+                </div>
+              ),
+            };
+          })}
+        />
       </div>
 
       <form
@@ -82,9 +85,7 @@ export default async function ContactListsPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-fg-2">
-            Descrição (opcional)
-          </label>
+          <label className="mb-1 block text-sm font-medium text-fg-2">Descrição (opcional)</label>
           <input
             name="description"
             placeholder="Para que serve esta lista?"

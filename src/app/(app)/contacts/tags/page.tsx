@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { createTag, updateTag, deleteTag } from "./actions";
+import { bulkDeleteTags, createTag, updateTag, deleteTag } from "./actions";
 import { TagRow } from "@/components/tag-row";
+import { SelectableList } from "@/components/bulk/selectable-list";
 
 export default async function ContactTagsPage() {
   const supabase = await createClient();
@@ -24,24 +25,32 @@ export default async function ContactTagsPage() {
         Crie e gerencie as tags. A atribuição continua sendo feita no contato.
       </p>
 
-      <div className="mb-6 rounded-lg border border-border-1 bg-oxford-white">
-        {tags?.length ? (
-          <ul className="divide-y divide-border-1">
-            {tags.map((tag) => (
+      <div className="mb-6">
+        <SelectableList
+          singular="tag"
+          plural="tags"
+          emptyMessage="Nenhuma tag criada ainda."
+          actions={[
+            {
+              key: "delete",
+              label: "Excluir",
+              danger: true,
+              run: bulkDeleteTags,
+              confirm: "Excluir {count} tag(s)? Elas serão removidas de todos os contatos.",
+            },
+          ]}
+          rows={(tags ?? []).map((tag) => ({
+            id: tag.id,
+            content: (
               <TagRow
-                key={tag.id}
                 tag={tag}
                 usageCount={usage.get(tag.name) ?? 0}
                 updateAction={updateTag}
                 deleteAction={deleteTag}
               />
-            ))}
-          </ul>
-        ) : (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted">
-            Nenhuma tag criada ainda.
-          </p>
-        )}
+            ),
+          }))}
+        />
       </div>
 
       <form

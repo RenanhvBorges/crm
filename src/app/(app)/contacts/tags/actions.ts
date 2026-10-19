@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { kickAutomationProcessor } from "@/lib/automations/kick";
+import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
 
 const DEFAULT_COLOR = "#263fa3";
 
@@ -142,4 +143,37 @@ export async function deleteTag(id: string) {
 
   kickAutomationProcessor();
   revalidateTagSurfaces();
+}
+
+// ---------------------------------------------------------------------------
+// Ações em massa
+// ---------------------------------------------------------------------------
+
+export async function bulkDeleteTags(ids: string[]): Promise<BulkResult> {
+  return runBulk(async () => {
+    const tagIds = parseIds(ids);
+    const supabase = await createClient();
+
+    const names: string[] = [];
+    for (const part of chunk(tagIds)) {
+      const { data, error } = await supabase.from("tags").select("name").in("id", part);
+      if (error) throw new Error(error.message);
+      names.push(...(data ?? []).map((t) => t.name));
+    }
+
+    for (const part of chunk(tagIds)) {
+      const { error } = await supabase.from("tags").delete().in("id", part);
+      if (error) throw new Error(error.message);
+    }
+
+    // Remove cada tag excluída dos contatos que a possuem.
+    for (const name of names) {
+      const { error } = await supabase.rpc("remove_contact_tag", { tag_name: name });
+      if (error) throw new Error(error.message);
+    }
+
+    kickAutomationProcessor();
+    revalidateTagSurfaces();
+    return `${pluralize(names.length, "tag excluída", "tags excluídas")}. Removidas também dos contatos.`;
+  });
 }

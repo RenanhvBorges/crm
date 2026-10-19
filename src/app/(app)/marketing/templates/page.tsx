@@ -2,7 +2,8 @@ import Link from "next/link";
 import { LayoutTemplate, Copy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteFieldButton } from "@/components/delete-field-button";
-import { createTemplate, deleteTemplate, duplicateTemplate } from "./actions";
+import { SelectableList } from "@/components/bulk/selectable-list";
+import { bulkDeleteTemplates, createTemplate, deleteTemplate, duplicateTemplate } from "./actions";
 
 export default async function EmailTemplatesPage() {
   const supabase = await createClient();
@@ -18,11 +19,24 @@ export default async function EmailTemplatesPage() {
         Modelos reutilizáveis para campanhas, com editor de blocos arrastáveis.
       </p>
 
-      <div className="mb-6 rounded-lg border border-border-1 bg-oxford-white">
-        {templates?.length ? (
-          <ul className="divide-y divide-border-1">
-            {templates.map((t) => (
-              <li key={t.id} className="flex items-center justify-between px-4 py-3">
+      <div className="mb-6">
+        <SelectableList
+          singular="template"
+          plural="templates"
+          emptyMessage="Nenhum template criado ainda."
+          actions={[
+            {
+              key: "delete",
+              label: "Excluir",
+              danger: true,
+              run: bulkDeleteTemplates,
+              confirm: "Excluir {count} template(s)?",
+            },
+          ]}
+          rows={(templates ?? []).map((t) => ({
+            id: t.id,
+            content: (
+              <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-start gap-3">
                   <LayoutTemplate size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-fg-3" />
                   <div>
@@ -51,14 +65,10 @@ export default async function EmailTemplatesPage() {
                     confirmMessage="Excluir este template?"
                   />
                 </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="px-4 py-6 text-center text-sm text-fg-muted">
-            Nenhum template criado ainda.
-          </p>
-        )}
+              </div>
+            ),
+          }))}
+        />
       </div>
 
       <form
