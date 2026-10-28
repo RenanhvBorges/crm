@@ -22,7 +22,7 @@ export default async function ContactsPage({
 
   let query = supabase
     .from("contacts")
-    .select("id, name, email, phone, company, tags, score, custom_fields")
+    .select("id, name, email, phone, company, tags, score, lead_source, custom_fields")
     .order("created_at", { ascending: false });
 
   if (q) {

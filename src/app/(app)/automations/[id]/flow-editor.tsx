@@ -1,9 +1,11 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Link from "next/link";
 import { Plus, Trash2 } from "lucide-react";
 import type { ConditionNode, ConditionRule, FlowNode } from "@/lib/automations/flow";
 import { NODE_DEFINITIONS, describeNode, nodeDefinition } from "@/lib/automations/node-catalog";
+import { LEAD_SOURCES } from "@/lib/lead-source";
 import { resolversFrom, type BuilderCatalogs } from "./builder-types";
 
 const inputClass =
@@ -258,6 +260,10 @@ const FIXED_CONTACT_FIELDS = [
   { key: "phone", label: "Telefone" },
   { key: "company", label: "Empresa" },
 ];
+
+// Condições também leem a origem do lead, que não é editável pelo passo
+// "Atualizar campo" (é calculada no banco).
+const RULE_FIXED_FIELDS = [...FIXED_CONTACT_FIELDS, { key: "lead_source", label: "Origem do lead" }];
 
 function NodeEditor({
   node,
@@ -566,6 +572,39 @@ function NodeEditor({
         </div>
       );
 
+    case "send_ad_conversion": {
+      const selected = catalogs.adConversions.find((c) => c.id === node.conversionId);
+      const platforms = selected
+        ? [selected.google ? "Google Ads" : null, selected.meta ? "Meta" : null].filter(Boolean).join(" e ")
+        : "";
+      return (
+        <div>
+          <label className={labelClass}>Conversão</label>
+          <select
+            value={node.conversionId}
+            onChange={(e) => onChange({ ...node, conversionId: e.target.value })}
+            className={inputClass}
+          >
+            <option value="">Selecione...</option>
+            {catalogs.adConversions.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+                {c.is_active ? "" : " (desativada)"}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-fg-muted">
+            {selected ? `Envia para ${platforms}. ` : ""}
+            Conversões e credenciais ficam em{" "}
+            <Link href="/settings/conversions" className="text-fg-brand hover:underline">
+              Configurações → Conversões offline
+            </Link>
+            .
+          </p>
+        </div>
+      );
+    }
+
     case "wait":
       return (
         <div className="grid grid-cols-2 gap-3">
@@ -710,7 +749,7 @@ function RuleRow({
   const effectiveOperator = operators.includes(rule.operator) ? rule.operator : operators[0];
   const needsKey = rule.source === "fixed" || rule.source === "custom";
   const needsValue = !NO_VALUE_OPERATORS.has(effectiveOperator);
-  const keyOptions = rule.source === "fixed" ? FIXED_CONTACT_FIELDS : catalogs.fields;
+  const keyOptions = rule.source === "fixed" ? RULE_FIXED_FIELDS : catalogs.fields;
 
   return (
     <div className="rounded-md border border-border-1 p-2">
@@ -776,6 +815,20 @@ function RuleRow({
               {catalogs.tags.map((t) => (
                 <option key={t.name} value={t.name}>
                   {t.name}
+                </option>
+              ))}
+            </select>
+          ) : rule.source === "fixed" && rule.key === "lead_source" ? (
+            <select
+              value={rule.value}
+              aria-label="Origem do lead da regra"
+              onChange={(e) => onChange({ ...rule, value: e.target.value })}
+              className={inputClass}
+            >
+              <option value="">Selecione a origem...</option>
+              {LEAD_SOURCES.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
                 </option>
               ))}
             </select>

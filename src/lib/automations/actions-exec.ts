@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json, Tables } from "@/lib/supabase/database.types";
 import { resolvePlaceholdersText } from "@/lib/email-placeholders";
 import { resolveRecipients, sendNextChunk } from "@/lib/email-send";
+import { enqueueAdConversion } from "@/lib/ad-conversions/enqueue";
 import type { FlowNode } from "./flow";
 
 type Admin = SupabaseClient<Database>;
@@ -256,6 +257,16 @@ export async function executeNode(
       }
     }
 
+    case "send_ad_conversion": {
+      return enqueueAdConversion(admin, {
+        conversionId: node.conversionId,
+        contact,
+        deal: await resolveTargetDeal(admin, enrollment, contact),
+        automationId: automation.id,
+        enrollmentId: enrollment.id,
+      });
+    }
+
     case "wait":
     case "condition":
       // Tratados pelo engine, nunca chegam aqui.
@@ -269,20 +280,20 @@ async function resolveTargetDeal(
   admin: Admin,
   enrollment: Enrollment,
   contact: Contact,
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; value: number } | null> {
   const context = enrollment.context as Record<string, unknown>;
   const contextDeal = (context.deal ?? null) as { id?: string } | null;
   if (contextDeal?.id) {
     const { data } = await admin
       .from("deals")
-      .select("id")
+      .select("id, value")
       .eq("id", contextDeal.id)
       .maybeSingle();
     if (data) return data;
   }
   const { data } = await admin
     .from("deals")
-    .select("id")
+    .select("id, value")
     .eq("contact_id", contact.id)
     .eq("status", "open")
     .order("created_at", { ascending: false })

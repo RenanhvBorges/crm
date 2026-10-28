@@ -27,6 +27,7 @@ import {
   Workflow,
   Webhook,
   Trophy,
+  Target,
   type LucideIcon,
 } from "lucide-react";
 
@@ -93,6 +94,7 @@ function getNavItems(isDirector: boolean): NavItem[] {
           : []),
         { href: "/settings/api", label: "API", icon: Braces },
         { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
+        { href: "/settings/conversions", label: "Conversões offline", icon: Target },
       ],
     },
   ];

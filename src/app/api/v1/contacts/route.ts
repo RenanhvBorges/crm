@@ -5,7 +5,7 @@ import { kickAutomationProcessor } from "@/lib/automations/kick";
 import type { Json } from "@/lib/supabase/database.types";
 
 const CONTACT_COLUMNS =
-  "id, name, email, phone, company, tags, custom_fields, score, created_at, updated_at";
+  "id, name, email, phone, company, tags, custom_fields, score, lead_source, created_at, updated_at";
 
 export const GET = withApiAuth(async (_request, { admin, url }) => {
   const pagination = getPagination(url);

@@ -71,6 +71,11 @@ const sendEmailNode = z.object({
   subject: z.string().default(""),
 });
 const webhookNode = z.object({ id: z.string(), type: z.literal("webhook"), url: z.string() });
+const sendAdConversionNode = z.object({
+  id: z.string(),
+  type: z.literal("send_ad_conversion"),
+  conversionId: z.string(),
+});
 const waitNode = z.object({
   id: z.string(),
   type: z.literal("wait"),
@@ -91,7 +96,8 @@ type ActionNode =
   | z.infer<typeof setDealStatusNode>
   | z.infer<typeof updateContactFieldNode>
   | z.infer<typeof sendEmailNode>
-  | z.infer<typeof webhookNode>;
+  | z.infer<typeof webhookNode>
+  | z.infer<typeof sendAdConversionNode>;
 
 export type WaitNode = z.infer<typeof waitNode>;
 
@@ -130,6 +136,7 @@ export const flowNodeSchema: z.ZodType<FlowNode> = z.lazy(
       updateContactFieldNode,
       sendEmailNode,
       webhookNode,
+      sendAdConversionNode,
       waitNode,
       conditionNode,
     ]) as unknown as z.ZodType<FlowNode>,
@@ -256,6 +263,9 @@ function validateList(nodes: FlowNode[], errors: string[]) {
         } catch {
           errors.push("Há um passo de webhook com URL inválida.");
         }
+        break;
+      case "send_ad_conversion":
+        if (!node.conversionId) errors.push("Há um passo de conversão offline sem conversão selecionada.");
         break;
       case "set_deal_status":
       case "wait":

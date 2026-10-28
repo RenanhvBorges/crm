@@ -14,6 +14,7 @@ import { triggerMatches } from "./triggers";
 import { evaluateCondition } from "./conditions";
 import { executeNode } from "./actions-exec";
 import { fanOutEvent, processWebhookDeliveries } from "@/lib/webhooks/deliver";
+import { processAdConversions } from "@/lib/ad-conversions/dispatch";
 
 type Admin = SupabaseClient<Database>;
 type Automation = Tables<"automations">;
@@ -41,11 +42,13 @@ export type ProcessSummary = {
   advanced: number;
   webhooksQueued: number;
   webhooksSent: number;
+  conversionsSent: number;
 };
 
 // Processa a fila de automações: consome eventos → inscreve contatos nas
 // automações ativas cujo gatilho casa → avança inscrições em execução e
-// acorda esperas vencidas. Chamado pelo cron (1 min) e pelo kick pós-mutação.
+// acorda esperas vencidas → envia webhooks e conversões offline. Chamado pelo
+// cron (1 min) e pelo kick pós-mutação.
 export async function processAutomations(): Promise<ProcessSummary> {
   const admin = createAdminClient();
   const summary: ProcessSummary = {
@@ -54,6 +57,7 @@ export async function processAutomations(): Promise<ProcessSummary> {
     advanced: 0,
     webhooksQueued: 0,
     webhooksSent: 0,
+    conversionsSent: 0,
   };
 
   for (let round = 0; round < MAX_ROUNDS; round++) {
@@ -107,6 +111,11 @@ export async function processAutomations(): Promise<ProcessSummary> {
 
   const deliveries = await processWebhookDeliveries(admin);
   summary.webhooksSent += deliveries.succeeded;
+
+  // Conversões enfileiradas pelo passo "Enviar conversão offline" neste tick
+  // (e retentativas vencidas) saem para o Google/Meta aqui.
+  const conversions = await processAdConversions(admin);
+  summary.conversionsSent += conversions.sent;
 
   return summary;
 }

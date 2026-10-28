@@ -22,6 +22,7 @@ export default async function AutomationDetailPage({
     { data: templates },
     { data: fields },
     { data: profiles },
+    { data: adConversions },
   ] = await Promise.all([
     supabase.from("automations").select("*").eq("id", id).single(),
     supabase.from("tags").select("name").order("name"),
@@ -36,6 +37,10 @@ export default async function AutomationDetailPage({
       .eq("entity", "contact")
       .order("sort_order"),
     supabase.from("profiles").select("id, full_name, email").order("email"),
+    supabase
+      .from("ad_conversions")
+      .select("id, name, is_active, google_conversion_action_id, meta_event_name")
+      .order("name"),
   ]);
 
   if (!automation) notFound();
@@ -95,6 +100,13 @@ export default async function AutomationDetailPage({
         templates: templates ?? [],
         fields: fields ?? [],
         profiles: (profiles ?? []).map((p) => ({ id: p.id, name: p.full_name ?? p.email })),
+        adConversions: (adConversions ?? []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          is_active: c.is_active,
+          google: Boolean(c.google_conversion_action_id),
+          meta: Boolean(c.meta_event_name),
+        })),
       }}
       />
       <HistoryPanel enrollments={history} />
