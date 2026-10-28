@@ -42,7 +42,7 @@ export default async function ListDetailPage({
     supabase
       .from("contact_list_members")
       .select(
-        "added_at, contact:contacts(id, name, email, phone, company, tags, score, custom_fields)",
+        "added_at, contact:contacts(id, name, email, phone, company, tags, score, lead_source, custom_fields)",
       )
       .eq("list_id", id)
       .order("added_at", { ascending: false }),
@@ -80,6 +80,7 @@ export default async function ListDetailPage({
       company: c.company,
       tags: c.tags,
       score: c.score,
+      lead_source: c.lead_source,
       custom_fields: (c.custom_fields ?? {}) as Record<string, unknown>,
     };
   });

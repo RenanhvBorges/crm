@@ -6,6 +6,7 @@ import { TaskQuickAddForm } from "@/components/task-quick-add-form";
 import { TaskList } from "@/components/task-list";
 import { DeleteContactButton } from "@/components/delete-contact-button";
 import { ScoreBadge } from "@/components/score-badge";
+import { LeadSourceBadge } from "@/components/lead-source-badge";
 
 const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -69,6 +70,7 @@ export default async function ContactDetailPage({
         <div className="flex items-center gap-3">
           <h1 className="text-2xl">{contact.name}</h1>
           <ScoreBadge score={contact.score} tiers={scoringTiers ?? []} />
+          {contact.lead_source ? <LeadSourceBadge source={contact.lead_source} /> : null}
         </div>
         <DeleteContactButton contactId={contact.id} />
       </div>

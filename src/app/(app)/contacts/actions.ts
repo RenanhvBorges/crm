@@ -6,16 +6,20 @@ import { createClient } from "@/lib/supabase/server";
 import { kickAutomationProcessor } from "@/lib/automations/kick";
 import type { CustomFieldValues } from "@/lib/custom-fields";
 import { chunk, parseIds, pluralize, runBulk, type BulkResult } from "@/lib/bulk";
+import { isLeadSource } from "@/lib/lead-source";
 
 function parseContactFormData(formData: FormData) {
   const tagsRaw = String(formData.get("tags") ?? "");
   const customFieldsRaw = String(formData.get("custom_fields") ?? "{}");
+  // Vazio = automática: o trigger do banco recalcula pelos dados de atribuição.
+  const leadSource = formData.get("lead_source");
 
   return {
     name: String(formData.get("name") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim() || null,
     phone: String(formData.get("phone") ?? "").trim() || null,
     company: String(formData.get("company") ?? "").trim() || null,
+    lead_source: isLeadSource(leadSource) ? leadSource : null,
     tags: tagsRaw
       .split(",")
       .map((t) => t.trim())

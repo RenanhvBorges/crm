@@ -11,6 +11,7 @@ export type BuilderCatalogs = {
   templates: { id: string; name: string; subject: string }[];
   fields: { key: string; label: string }[];
   profiles: { id: string; name: string }[];
+  adConversions: { id: string; name: string; is_active: boolean; google: boolean; meta: boolean }[];
 };
 
 export function resolversFrom(catalogs: BuilderCatalogs): NameResolvers {
@@ -21,5 +22,6 @@ export function resolversFrom(catalogs: BuilderCatalogs): NameResolvers {
     template: (id) => catalogs.templates.find((t) => t.id === id)?.name,
     profile: (id) => catalogs.profiles.find((p) => p.id === id)?.name,
     field: (key) => catalogs.fields.find((f) => f.key === key)?.label,
+    adConversion: (id) => catalogs.adConversions.find((c) => c.id === id)?.name,
   };
 }

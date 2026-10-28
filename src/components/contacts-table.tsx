@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Columns3, Filter, Plus, X } from "lucide-react";
 import { ScoreBadge } from "@/components/score-badge";
+import { LeadSourceBadge } from "@/components/lead-source-badge";
 import { DeleteFieldButton } from "@/components/delete-field-button";
 import { SelectCheckbox } from "@/components/bulk/select-checkbox";
 import { useSelection } from "@/components/bulk/use-selection";
@@ -265,6 +266,10 @@ function Cell({
 
   if (col.key === "score") {
     return <ScoreBadge score={contact.score} tiers={tiers} />;
+  }
+
+  if (col.key === "lead_source") {
+    return <LeadSourceBadge source={contact.lead_source} />;
   }
 
   if (col.type === "tags" || Array.isArray(raw)) {

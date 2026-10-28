@@ -15,12 +15,15 @@ import { createContact, updateContact } from "@/app/(app)/contacts/actions";
 import { createTagFromPicker } from "@/app/(app)/contacts/tags/actions";
 import { TagInput, type CatalogTag } from "@/components/tag-input";
 import { CustomFieldInput } from "@/components/custom-field-input";
+import { LEAD_SOURCES } from "@/lib/lead-source";
 
 const baseSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("E-mail inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
   company: z.string().optional(),
+  // "" = automática: o banco calcula pelos dados de atribuição (detect_lead_source)
+  lead_source: z.string().optional(),
 });
 
 type BaseFormValues = z.infer<typeof baseSchema>;
@@ -69,6 +72,7 @@ export function ContactForm({
       email: contact?.email ?? "",
       phone: contact?.phone ?? "",
       company: contact?.company ?? "",
+      lead_source: contact?.lead_source ?? "",
     },
   });
 
@@ -94,6 +98,7 @@ export function ContactForm({
     formData.set("email", values.email ?? "");
     formData.set("phone", values.phone ?? "");
     formData.set("company", values.company ?? "");
+    formData.set("lead_source", values.lead_source ?? "");
     formData.set("tags", tags.join(", "));
     formData.set("custom_fields", JSON.stringify(customValues));
 
@@ -136,6 +141,19 @@ export function ContactForm({
             {...register("company")}
             className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none"
           />
+        </Field>
+        <Field label="Origem do lead">
+          <select
+            {...register("lead_source")}
+            className="w-full rounded-md border border-border-1 px-3 py-2 text-sm focus:border-border-brand focus:outline-none"
+          >
+            <option value="">Automática (pelos dados de atribuição)</option>
+            {LEAD_SOURCES.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
         </Field>
         <div className="col-span-2">
           {/* Não pode ser <label>: o label repassa o clique ao primeiro botão

@@ -9,6 +9,7 @@ import {
   PenLine,
   Split,
   Tag,
+  Target,
   Timer,
   Webhook,
   type LucideIcon,
@@ -22,7 +23,7 @@ import { newNodeId, type FlowNode, type FlowNodeType } from "./flow";
 export type NodeDefinition = {
   type: FlowNodeType;
   label: string;
-  group: "Contato" | "Vendas e tarefas" | "Mensagens" | "Fluxo";
+  group: "Contato" | "Vendas e tarefas" | "Mensagens" | "Anúncios" | "Fluxo";
   icon: LucideIcon;
   create: () => FlowNode;
 };
@@ -126,6 +127,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     create: () => ({ id: newNodeId(), type: "webhook", url: "" }),
   },
   {
+    type: "send_ad_conversion",
+    label: "Enviar conversão offline",
+    group: "Anúncios",
+    icon: Target,
+    create: () => ({ id: newNodeId(), type: "send_ad_conversion", conversionId: "" }),
+  },
+  {
     type: "wait",
     label: "Esperar",
     group: "Fluxo",
@@ -159,6 +167,7 @@ export type NameResolvers = {
   template?: (id: string) => string | undefined;
   profile?: (id: string) => string | undefined;
   field?: (key: string) => string | undefined;
+  adConversion?: (id: string) => string | undefined;
 };
 
 const WAIT_UNIT_LABEL: Record<string, [string, string]> = {
@@ -216,6 +225,10 @@ export function describeNode(node: FlowNode, resolve?: NameResolvers): string {
         : "Selecione o template";
     case "webhook":
       return node.url ? `POST para ${node.url}` : "Informe a URL";
+    case "send_ad_conversion":
+      return node.conversionId
+        ? `Enviar conversão ${resolve?.adConversion?.(node.conversionId) ?? "selecionada"}`
+        : "Selecione a conversão";
     case "wait": {
       const [singular, plural] = WAIT_UNIT_LABEL[node.unit] ?? ["", ""];
       return `Esperar ${node.amount} ${node.amount === 1 ? singular : plural}`;

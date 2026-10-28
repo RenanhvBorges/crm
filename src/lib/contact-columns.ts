@@ -1,6 +1,7 @@
 import type { CustomFieldDefinition } from "@/lib/custom-fields";
+import { leadSourceLabel } from "@/lib/lead-source";
 
-// Um "column key" é um id estável: campo fixo ("name"), meta ("tags"/"score")
+// Um "column key" é um id estável: campo fixo ("name"), meta ("tags"/"score"/"lead_source")
 // ou campo personalizado ("cf:<key>"). Serve para visibilidade e filtros.
 export type ColumnDef = {
   key: string;
@@ -21,6 +22,7 @@ export const FIXED_COLUMNS: ColumnDef[] = [
 export const META_COLUMNS: ColumnDef[] = [
   { key: "tags", label: "Tags", type: "tags", source: "meta" },
   { key: "score", label: "Score", type: "score", source: "meta" },
+  { key: "lead_source", label: "Origem", type: "lead_source", source: "meta" },
 ];
 
 // Coluna sempre presente (não removível): a de nome, que leva ao contato.
@@ -33,6 +35,7 @@ export const DEFAULT_VISIBLE_COLUMNS = [
   "company",
   "tags",
   "score",
+  "lead_source",
 ];
 
 export function availableColumns(
@@ -124,6 +127,7 @@ export type ContactRow = {
   company: string | null;
   tags: string[];
   score: number;
+  lead_source: string | null;
   custom_fields: Record<string, unknown>;
 };
 
@@ -144,6 +148,9 @@ export function getColumnValue(contact: ContactRow, col: ColumnDef): unknown {
       return contact.tags;
     case "score":
       return contact.score;
+    // Filtra pelo rótulo ("Meta Ads"), que é o que o usuário vê e digita.
+    case "lead_source":
+      return leadSourceLabel(contact.lead_source);
     default:
       return null;
   }

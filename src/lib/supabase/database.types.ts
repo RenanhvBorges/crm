@@ -14,6 +14,197 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_conversion_uploads: {
+        Row: {
+          attempts: number
+          automation_id: string | null
+          contact_id: string | null
+          conversion_id: string
+          created_at: string
+          currency: string | null
+          deal_id: string | null
+          dedupe_key: string
+          enrollment_id: string | null
+          event_time: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          next_retry_at: string
+          payload: Json
+          platform: string
+          response: Json | null
+          sent_at: string | null
+          status: string
+          value: number | null
+        }
+        Insert: {
+          attempts?: number
+          automation_id?: string | null
+          contact_id?: string | null
+          conversion_id: string
+          created_at?: string
+          currency?: string | null
+          deal_id?: string | null
+          dedupe_key: string
+          enrollment_id?: string | null
+          event_time?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_retry_at?: string
+          payload: Json
+          platform: string
+          response?: Json | null
+          sent_at?: string | null
+          status?: string
+          value?: number | null
+        }
+        Update: {
+          attempts?: number
+          automation_id?: string | null
+          contact_id?: string | null
+          conversion_id?: string
+          created_at?: string
+          currency?: string | null
+          deal_id?: string | null
+          dedupe_key?: string
+          enrollment_id?: string | null
+          event_time?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          next_retry_at?: string
+          payload?: Json
+          platform?: string
+          response?: Json | null
+          sent_at?: string | null
+          status?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_conversion_uploads_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "automations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_conversion_uploads_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_conversion_uploads_conversion_id_fkey"
+            columns: ["conversion_id"]
+            isOneToOne: false
+            referencedRelation: "ad_conversions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_conversion_uploads_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_conversion_uploads_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "automation_enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_conversions: {
+        Row: {
+          created_at: string
+          currency: string
+          fixed_value: number
+          google_conversion_action_id: string | null
+          id: string
+          is_active: boolean
+          meta_event_name: string | null
+          name: string
+          updated_at: string
+          value_mode: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          fixed_value?: number
+          google_conversion_action_id?: string | null
+          id?: string
+          is_active?: boolean
+          meta_event_name?: string | null
+          name: string
+          updated_at?: string
+          value_mode?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          fixed_value?: number
+          google_conversion_action_id?: string | null
+          id?: string
+          is_active?: boolean
+          meta_event_name?: string | null
+          name?: string
+          updated_at?: string
+          value_mode?: string
+        }
+        Relationships: []
+      }
+      ad_integrations: {
+        Row: {
+          config: Json
+          created_at: string
+          is_active: boolean
+          last_test_at: string | null
+          last_test_message: string | null
+          last_test_ok: boolean | null
+          platform: string
+          secret_hint: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          is_active?: boolean
+          last_test_at?: string | null
+          last_test_message?: string | null
+          last_test_ok?: boolean | null
+          platform: string
+          secret_hint?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          is_active?: boolean
+          last_test_at?: string | null
+          last_test_message?: string | null
+          last_test_ok?: boolean | null
+          platform?: string
+          secret_hint?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_integrations_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string
@@ -319,6 +510,7 @@ export type Database = {
           custom_fields: Json
           email: string | null
           id: string
+          lead_source: string | null
           name: string
           phone: string | null
           score: number
@@ -331,6 +523,7 @@ export type Database = {
           custom_fields?: Json
           email?: string | null
           id?: string
+          lead_source?: string | null
           name: string
           phone?: string | null
           score?: number
@@ -343,6 +536,7 @@ export type Database = {
           custom_fields?: Json
           email?: string | null
           id?: string
+          lead_source?: string | null
           name?: string
           phone?: string | null
           score?: number
@@ -1194,10 +1388,19 @@ export type Database = {
         }
         Returns: number
       }
+      detect_lead_source: { Args: { p_custom: Json }; Returns: string }
+      get_ad_integration_secret: {
+        Args: { p_platform: string }
+        Returns: string
+      }
       recalculate_all_contact_scores: { Args: never; Returns: undefined }
       remove_contact_tag: { Args: { tag_name: string }; Returns: undefined }
       rename_contact_tag: {
         Args: { new_name: string; old_name: string }
+        Returns: undefined
+      }
+      set_ad_integration_secret: {
+        Args: { p_platform: string; p_secret: string }
         Returns: undefined
       }
     }
