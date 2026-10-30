@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
-import { Prata, Manrope } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 
-const prata = Prata({
-  variable: "--font-prata",
-  weight: "400",
-  subsets: ["latin"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
@@ -27,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${prata.variable} ${manrope.variable} h-full`}>
+    <html lang="pt-BR" className={`${montserrat.variable} h-full`}>
       <body className="min-h-full flex flex-col bg-bg-page text-fg-1">
         {children}
       </body>

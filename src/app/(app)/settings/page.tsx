@@ -35,7 +35,7 @@ export default function SettingsPage() {
               <section.icon size={20} strokeWidth={1.5} />
             </span>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-fg-1">{section.title}</p>
+              <p className="text-sm font-bold text-fg-1">{section.title}</p>
               <p className="text-xs text-fg-3">{section.description}</p>
             </div>
             <span className="rounded-full bg-bg-surface-2 px-2 py-0.5 text-xs text-fg-3">

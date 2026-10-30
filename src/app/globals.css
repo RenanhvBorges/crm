@@ -157,8 +157,14 @@
   --shadow-xl: var(--shadow-xl);
   --shadow-brand: var(--shadow-brand);
 
-  --font-display: var(--font-prata), "Cormorant Garamond", Georgia, serif;
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Só dois pesos: títulos em bold (700) e o resto normal (400). */
+@theme {
+  --font-weight-medium: 400;
+  --font-weight-semibold: 400;
 }
 
 html,
@@ -176,9 +182,11 @@ body {
 h1,
 h2,
 h3,
-h4 {
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
-  font-weight: 400;
+  font-weight: 700;
   color: var(--fg-1);
   text-wrap: balance;
 }
@@ -186,7 +194,7 @@ h4 {
 /* Brand eyebrow — matches the "SOLUÇÕES DIGITAIS" treatment under the wordmark */
 .eyebrow {
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
