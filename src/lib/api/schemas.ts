@@ -13,6 +13,12 @@ export const contactCreateSchema = z.object({
   custom_fields: z.record(z.string(), z.unknown()).optional(),
 });
 export const contactUpdateSchema = contactCreateSchema.partial();
+// POST /contacts aceita `remove_tags`: no upsert por e-mail, tira essas tags do
+// contato existente depois de somar `tags` (usado para trocar uma tag exclusiva
+// por outra, ex.: "Lead qualificado" x "Lead não qualificado"). Ignorado ao criar.
+export const contactUpsertSchema = contactCreateSchema.extend({
+  remove_tags: z.array(z.string()).optional(),
+});
 
 export const tagCreateSchema = z.object({
   name: z.string().min(1, "O campo 'name' é obrigatório."),
