@@ -1,8 +1,8 @@
 import { withApiAuth, jsonBody, parseBody, throwOnDbError, ApiError } from "@/lib/api/handler";
 import { getPagination, paginated } from "@/lib/api/pagination";
-import { contactCreateSchema } from "@/lib/api/schemas";
+import { contactUpsertSchema } from "@/lib/api/schemas";
 import { kickAutomationProcessor } from "@/lib/automations/kick";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json, TablesUpdate } from "@/lib/supabase/database.types";
 
 const CONTACT_COLUMNS =
   "id, name, email, phone, company, tags, custom_fields, score, lead_source, created_at, updated_at";
@@ -40,9 +40,10 @@ export const GET = withApiAuth(async (_request, { admin, url }) => {
 
 // POST /contacts?upsert=email atualiza o contato existente com aquele e-mail
 // (merge parcial) em vez de criar um duplicado — o caminho usado por
-// integrações que recebem o mesmo lead mais de uma vez.
+// integrações que recebem o mesmo lead mais de uma vez. Tags somam (união) e
+// custom_fields mesclam por chave; `remove_tags` tira tags do contato existente.
 export const POST = withApiAuth(async (request, { admin, url }) => {
-  const body = parseBody(contactCreateSchema, await jsonBody(request));
+  const body = parseBody(contactUpsertSchema, await jsonBody(request));
   const upsertByEmail = url.searchParams.get("upsert") === "email";
 
   const values = {
@@ -69,13 +70,24 @@ export const POST = withApiAuth(async (request, { admin, url }) => {
         ...((existing.custom_fields as Record<string, unknown> | null) ?? {}),
         ...(body.custom_fields ?? {}),
       } as Json;
-      const mergedTags = body.tags
-        ? [...new Set([...existing.tags, ...body.tags])]
-        : existing.tags;
+      const removed = new Set(body.remove_tags ?? []);
+      const mergedTags = (
+        body.tags ? [...new Set([...existing.tags, ...body.tags])] : existing.tags
+      ).filter((tag) => !removed.has(tag));
+
+      // Merge parcial: telefone e empresa só mudam se vierem no corpo (antes, um
+      // envio sem `company` apagava a empresa do contato existente).
+      const updates: TablesUpdate<"contacts"> = {
+        name: values.name,
+        tags: mergedTags,
+        custom_fields: mergedCustom,
+      };
+      if (body.phone !== undefined) updates.phone = values.phone;
+      if (body.company !== undefined) updates.company = values.company;
 
       const { data, error } = await admin
         .from("contacts")
-        .update({ ...values, tags: mergedTags, custom_fields: mergedCustom })
+        .update(updates)
         .eq("id", existing.id)
         .select(CONTACT_COLUMNS)
         .single();
